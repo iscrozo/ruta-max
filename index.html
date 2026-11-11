@@ -37,7 +37,6 @@
             display: block;
             width: 100%;
             height: 100%;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
         }
 
         /* === CAPA SUPERPUESTA DE INTERFAZ (UI) === */
@@ -143,8 +142,7 @@
 
         /* NOTIFICACIONES Y DESTINO */
         .target-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.96);
             border-left: 6px solid #3483FA;
             border-radius: 12px;
             padding: 12px 16px;
@@ -172,8 +170,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(18, 22, 26, 0.85);
-            backdrop-filter: blur(6px);
+            background: rgba(18, 22, 26, 0.88);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -787,6 +784,11 @@
         // Estrellas
         ESTRELLA_DANO_MAX: 20,       // 2.ª estrella: daño total menor a este %
         ESTRELLA_EFICIENCIA: 90,     // 3.ª estrella: eficiencia mínima frente a la IA
+
+        // Rendimiento
+        RENDER_DPR_MAX: 1.5,         // Tope de nitidez (las pantallas Retina no pintan al doble)
+        RENDER_PIXELES_MAX: 2600000, // Tope de píxeles del lienzo
+        MINIMAPA_HZ: 10,             // Veces por segundo que se redibuja el minimapa
 
         // Game feel
         SHAKE_DECAY: 2.5,
@@ -2035,7 +2037,9 @@
     class GameEngine {
         constructor() {
             this.canvas = $('gameCanvas');
-            this.ctx = this.canvas.getContext('2d');
+            this.ctx = this.canvas.getContext('2d', { alpha: false });
+            this.escala = 1;                // Píxeles de lienzo por píxel CSS
+            this.miniT = 0;
             this.mini = $('minimap').getContext('2d');
             this.miniBase = document.createElement('canvas');
             this.miniBase.width = this.miniBase.height = 264;
@@ -2178,9 +2182,9 @@
                 } else if (code === 'ArrowUp' || code === 'ArrowLeft' || code === 'KeyW') {
                     e.preventDefault();
                     btns[(i <= 0 ? btns.length : i) - 1].focus();
-                } else if ((code === 'Enter' || code === 'NumpadEnter') && i < 0) {
+                } else if (code === 'Enter' || code === 'NumpadEnter' || code === 'Space') {
                     e.preventDefault();
-                    btns[0].click();
+                    btns[Math.max(0, i)].click();
                 }
             }
         }
@@ -2201,9 +2205,11 @@
         }
 
         resizeCanvas() {
-            const dpr = window.devicePixelRatio || 1;
-            this.canvas.width = Math.round(window.innerWidth * dpr);
-            this.canvas.height = Math.round(window.innerHeight * dpr);
+            // Escala con tope: un lienzo Retina completo cuesta demasiado por cuadro
+            const w = window.innerWidth, h = window.innerHeight;
+            this.escala = Math.min(window.devicePixelRatio || 1, CONFIG.RENDER_DPR_MAX, Math.sqrt(CONFIG.RENDER_PIXELES_MAX / (w * h)));
+            this.canvas.width = Math.round(w * this.escala);
+            this.canvas.height = Math.round(h * this.escala);
         }
 
         setupUI() {
@@ -2265,6 +2271,7 @@
             const sel = this.copilot ? this.copilot.sel : 0;
             this.copilot = new AICopilot(this);
             this.copilot.sel = sel;
+            this.miniT = 0;
             this.prepararMinimapa();
             this.nuevoTramo();
 
@@ -2334,6 +2341,7 @@
                 }
                 this.camera.update(dt, this.player, this.zoomObjetivo());
                 this.copilot.update(dt);
+                this.updateHUD();
                 return;
             }
 
@@ -2401,6 +2409,8 @@
                 this.lanzamiento.t += dt / 0.5;
                 if (this.lanzamiento.t >= 1) this.lanzamiento = null;
             }
+
+            this.updateHUD();
 
             // Victoria o derrota
             if (this.deliveriesDone >= CONFIG.ENTREGAS_META) this.endTurn(true);
@@ -2508,7 +2518,11 @@
                 setText('target-address', '¡Todas entregadas!');
                 setText('target-dist', 'Buen turno, veci');
             }
-            this.dibujarMinimapa();
+            this.miniT -= CONFIG.PASO;
+            if (this.miniT <= 0) {
+                this.miniT = 1 / CONFIG.MINIMAPA_HZ;
+                this.dibujarMinimapa();
+            }
         }
 
         prepararMinimapa() {
@@ -2662,7 +2676,7 @@
 
         /* ---------- Render ---------- */
         render(alpha) {
-            const ctx = this.ctx, dpr = window.devicePixelRatio || 1;
+            const ctx = this.ctx, dpr = this.escala;
             const W = this.canvas.width / dpr, H = this.canvas.height / dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             ctx.fillStyle = '#1e242b';
@@ -2690,8 +2704,6 @@
             this.particles.draw(ctx);
             this.textos.draw(ctx);
             ctx.restore();
-
-            if (enVivo) this.updateHUD();
         }
 
         dibujarDestino(ctx, t) {
