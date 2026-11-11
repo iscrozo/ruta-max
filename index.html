@@ -371,6 +371,160 @@
             font-size: 12px;
             box-shadow: 0 2px 0 #CCC;
         }
+
+        /* === FASE 2: COPILOTO IA, MINIMAPA, COUNTDOWN Y AJUSTES DE HUD === */
+        .btn:focus-visible {
+            outline: 3px solid #1A1A1A;
+            outline-offset: 3px;
+        }
+
+        .bar-fill.nitro { background: #FFB300; }
+
+        .hud-badge.bump { animation: bump 0.25s ease-out; }
+        @keyframes bump {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.18); }
+            100% { transform: scale(1); }
+        }
+
+        .minimap {
+            position: absolute;
+            left: 16px;
+            top: 112px;
+            width: 132px;
+            height: 132px;
+            border-radius: 14px;
+            border: 2px solid #FFFFFF;
+            background: #1e242b;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+
+        .copilot {
+            position: absolute;
+            right: 16px;
+            top: 170px;
+            width: 264px;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 16px;
+            border-top: 5px solid #FFE600;
+            padding: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .copilot-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .copilot-icon { display: inline-block; }
+        .copilot-icon.thinking { animation: thinking 0.5s infinite alternate; }
+        @keyframes thinking {
+            0% { transform: scale(1) rotate(-8deg); }
+            100% { transform: scale(1.25) rotate(8deg); }
+        }
+
+        .copilot-conf { color: #3483FA; }
+
+        .copilot-msg {
+            font-size: 12px;
+            line-height: 1.35;
+            color: #333;
+            font-weight: 600;
+            min-height: 48px;
+        }
+
+        .ruta-card {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            background: #F8F9FA;
+            border: 2px solid #EDEDED;
+            border-left: 6px solid var(--c);
+            border-radius: 10px;
+            padding: 6px 8px;
+            font-family: inherit;
+            cursor: pointer;
+            text-align: left;
+            transition: transform 0.12s ease, background 0.12s ease;
+        }
+        .ruta-card:hover { transform: scale(1.03); }
+        .ruta-card:active { transform: scale(0.96); }
+        .ruta-card.sel {
+            background: #FFFBD1;
+            border-color: #1A1A1A;
+            border-left-color: var(--c);
+        }
+        .ruta-nombre { font-size: 13px; font-weight: 800; white-space: nowrap; }
+        .ruta-info { font-size: 11px; font-weight: 700; color: #666; flex: 1; }
+
+        .hud-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            width: 100%;
+            gap: 8px;
+        }
+
+        .hud-actions { display: flex; gap: 8px; }
+        .hud-actions .btn { width: auto; padding: 10px 16px; margin: 0; }
+
+        .countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 15;
+            pointer-events: none;
+            display: none;
+            font-size: 120px;
+            font-weight: 900;
+            color: #FFE600;
+            text-shadow: 0 6px 0 #1A1A1A, 0 10px 30px rgba(0,0,0,0.6);
+            white-space: nowrap;
+        }
+        .countdown.long { font-size: 52px; }
+        .countdown.pop { animation: cdpop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes cdpop {
+            0% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+            60% { transform: translate(-50%, -50%) scale(0.92); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .summary-hint {
+            font-size: 13px;
+            font-weight: 700;
+            color: #3483FA;
+            margin-bottom: 14px;
+        }
+
+        .menu-record {
+            font-size: 13px;
+            font-weight: 700;
+            color: #555;
+            margin: 8px 0 4px;
+        }
+
+        /* En táctil, el HUD inferior sube para no chocar con el joystick */
+        .touch #hud { padding-bottom: 156px; }
+        .touch .key-only { display: none; }
+
+        @media (max-width: 700px) {
+            .status-bars { width: 96px; }
+            .hud-timer { font-size: 18px; padding: 6px 10px; }
+            .hud-badge { font-size: 12px; padding: 5px 10px; }
+            .minimap { width: 100px; height: 100px; top: 124px; }
+            .copilot { width: 188px; top: 172px; padding: 8px; }
+            .copilot-msg { display: none; }
+            .ruta-card .key-hint { display: none; }
+            .target-card { max-width: 200px; }
+        }
     </style>
 </head>
 <body>
@@ -387,7 +541,7 @@
                         <span>📦 Entregas:</span>
                         <span id="hud-deliveries" style="font-size: 16px;">0 / 5</span>
                     </div>
-                    <div class="hud-badge" style="background: #FFF; border: 1px solid #EDEDED;">
+                    <div class="hud-badge" id="hud-plus-badge" style="background: #FFF; border: 1px solid #EDEDED;">
                         <span>🟡 Plus:</span>
                         <span id="hud-plus" style="color: #3483FA;">0</span>
                     </div>
@@ -412,22 +566,47 @@
                         <div class="bar-container">
                             <div id="bar-battery" class="bar-fill battery"></div>
                         </div>
+
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-top: 2px;">
+                            <span>☕ Nitro</span>
+                            <span id="lbl-nitro">50%</span>
+                        </div>
+                        <div class="bar-container">
+                            <div id="bar-nitro" class="bar-fill nitro"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
+            <!-- MINIMAPA (los cerros siempre al oriente) -->
+            <canvas id="minimap" class="minimap" width="264" height="264"></canvas>
+
+            <!-- PANEL DEL COPILOTO IA -->
+            <div class="copilot">
+                <div class="copilot-head">
+                    <span><span id="copilot-icon" class="copilot-icon">🧭</span> Copiloto IA</span>
+                    <span class="copilot-conf" id="copilot-conf">--%</span>
+                </div>
+                <div class="copilot-msg" id="copilot-msg"></div>
+                <div id="copilot-rutas" style="display: flex; flex-direction: column; gap: 5px;"></div>
+            </div>
+
             <!-- TARJETA DE DESTINO INFERIOR -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
+            <div class="hud-bottom">
                 <div class="target-card">
                     <div style="font-size: 11px; font-weight: 800; color: #3483FA; text-transform: uppercase;">Próxima Entrega</div>
                     <div class="target-address" id="target-address">Calle 72 # 10-34</div>
                     <div class="target-dist" id="target-dist">📍 Distancia: -- m</div>
                 </div>
-                <div class="interactive">
-                    <button class="btn btn-secondary" style="width: auto; padding: 10px 16px; margin: 0;" id="btn-pause-hud">⏸ Pausa [P]</button>
+                <div class="hud-actions interactive">
+                    <button class="btn btn-yellow" id="btn-report-hud" tabindex="-1">🕳️ Reportar<span class="key-only"> [E]</span></button>
+                    <button class="btn btn-secondary" id="btn-pause-hud" tabindex="-1">⏸<span class="key-only"> Pausa [P]</span></button>
                 </div>
             </div>
         </div>
+
+        <!-- CUENTA REGRESIVA -->
+        <div id="countdown" class="countdown"></div>
 
         <!-- CONTROLES TÁCTILES MOBILE -->
         <div id="touch-controls" class="touch-controls">
@@ -443,10 +622,10 @@
         <div id="screen-splash" class="modal-overlay active">
             <div class="menu-box">
                 <div class="brand-title">RutaMax <span>Bogotá</span></div>
-                <div class="brand-subtitle">Entregas a Tiempo — Fase 1</div>
+                <div class="brand-subtitle">Entregas a Tiempo — Fase 2</div>
                 <div style="font-size: 48px; margin: 20px 0;">🛵📦</div>
                 <p style="font-size: 14px; color: #555; margin-bottom: 24px;">
-                    Entrega 5 paquetes en <b>Chapinero</b> antes de que el reloj marque 0. ¡Cuidado con los huecos de la ciudad!
+                    Entrega 5 paquetes en <b>Chapinero</b> antes de que el reloj marque 0. Tu Copiloto IA te arma la ruta. ¡Cuidado con los huecos!
                 </p>
                 <button class="btn btn-yellow interactive" id="btn-splash-start">¡ARRANCAR VECI! [Enter]</button>
             </div>
@@ -459,18 +638,22 @@
                 <div class="brand-subtitle">Menú Principal</div>
                 <button class="btn btn-yellow interactive" id="btn-menu-play">▶ Jugar Turno Chapinero</button>
                 <button class="btn btn-secondary interactive" id="btn-menu-controls">🎮 Controles</button>
-                <div style="font-size: 12px; color: #888; margin-top: 16px;">Fase 1 — Moto Rola v1.0</div>
+                <div class="menu-record" id="menu-record"></div>
+                <div style="font-size: 12px; color: #888; margin-top: 8px;">Fase 2 — Moto Rola + Copiloto IA · ↑ ↓ y Enter para navegar</div>
             </div>
         </div>
 
         <!-- 3. CONTROLES / AYUDA -->
         <div id="screen-controls" class="modal-overlay">
             <div class="menu-box" style="text-align: left;">
-                <h3 style="margin-bottom: 16px; font-size: 20px;">🎮 Controles de Conducción</h3>
+                <h3 style="margin-bottom: 16px; font-size: 20px;">🎮 Controles</h3>
                 <p style="margin-bottom: 8px; font-size: 14px;"><span class="key-hint">Flechas</span> / <span class="key-hint">WASD</span> : Acelerar, Frenar, Girar</p>
-                <p style="margin-bottom: 8px; font-size: 14px;"><span class="key-hint">Espacio</span> : Tinto Nitro ⚡</p>
+                <p style="margin-bottom: 8px; font-size: 14px;"><span class="key-hint">Espacio</span> : Tinto Nitro ☕ (se carga con monedas, entregas y esquivadas)</p>
+                <p style="margin-bottom: 8px; font-size: 14px;"><span class="key-hint">1</span> <span class="key-hint">2</span> <span class="key-hint">3</span> : Elegir ruta del Copiloto (⚡ Rápida, 🛡️ Segura, 🌱 Eco)</p>
+                <p style="margin-bottom: 8px; font-size: 14px;"><span class="key-hint">E</span> : Reportar un hueco cercano (+Plus)</p>
                 <p style="margin-bottom: 8px; font-size: 14px;"><span class="key-hint">P</span> / <span class="key-hint">Esc</span> : Pausa</p>
-                <p style="margin-bottom: 16px; font-size: 14px;"><span class="key-hint">R</span> : Reinicio Instantáneo</p>
+                <p style="margin-bottom: 8px; font-size: 14px;"><span class="key-hint">R</span> : Reintentar el mismo mapa al instante</p>
+                <p style="margin-bottom: 16px; font-size: 13px; color: #666;">Los huecos con anillo rojo están reportados; los demás apenas se ven. Los cerros siempre quedan al oriente.</p>
                 <button class="btn btn-secondary interactive" id="btn-controls-back">Volver</button>
             </div>
         </div>
@@ -498,22 +681,32 @@
                     <span class="star" id="star-3">★</span>
                 </div>
 
+                <div class="summary-hint" id="summary-hint"></div>
+
                 <div class="stats-grid">
                     <div class="stat-item">
                         <div class="stat-label">Tiempo Usado</div>
-                        <div class="stat-val" id="stat-time">01:45</div>
+                        <div class="stat-val" id="stat-time">0:00</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">Monedas Plus</div>
-                        <div class="stat-val" id="stat-plus" style="color: #3483FA;">+150</div>
+                        <div class="stat-val" id="stat-plus" style="color: #3483FA;">+0</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">Estado Paquete</div>
-                        <div class="stat-val" id="stat-integrity">92%</div>
+                        <div class="stat-val" id="stat-integrity">100%</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">Huecos Caídos</div>
-                        <div class="stat-val" id="stat-potholes">1</div>
+                        <div class="stat-val" id="stat-potholes">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Eficiencia vs. IA</div>
+                        <div class="stat-val" id="stat-eff">--</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">¡Uy, casi!</div>
+                        <div class="stat-val" id="stat-near">0</div>
                     </div>
                 </div>
 
@@ -524,42 +717,154 @@
 
     </div>
 
-    <!-- === CÓDIGO DEL JUEGO (SINGLE FILE COMPLETE) === -->
+    <!-- === CÓDIGO DEL JUEGO (UN SOLO ARCHIVO) === -->
     <script>
     /* ==========================================================================
-       1. CONFIGURACIÓN Y CONSTANTES GLOBAL (BALANCE DE JUEGO)
+       1. CONFIGURACIÓN Y CONSTANTES GLOBALES (BALANCE DE JUEGO)
        ========================================================================== */
     const CONFIG = {
         // Turno
-        TURNO_TIEMPO_MAX: 180,       // 180 segundos por turno
-        ENTREGAS_META: 5,           // Meta de entregas en Chapinero
+        TURNO_TIEMPO_MAX: 180,       // Segundos por turno
+        ENTREGAS_META: 5,            // Meta de entregas en Chapinero
+        PASO: 1 / 60,                // Timestep fijo de la simulación
 
-        // Mapa y Grilla Bogotana
+        // Mapa y grilla bogotana
         GRID_COLS: 14,
         GRID_ROWS: 14,
-        BLOCK_SIZE: 220,            // Tamaño en píxeles de cada manzana
-        STREET_WIDTH: 80,           // Ancho de la calle en píxeles
+        BLOCK_SIZE: 220,             // Lado de cada manzana (px)
+        STREET_WIDTH: 80,            // Ancho de la calle (px)
+        CERROS_ANCHO: 160,           // Franja de los cerros al oriente (px)
+        PX_POR_METRO: 2.2,           // Una manzana = 100 m
+        CALLE_NORTE: 72,             // Calle del borde norte (bajan hacia el sur)
+        CARRERA_ORIENTE: 7,          // Carrera del borde oriental (suben al occidente)
 
-        // Moto / Jugador
-        MOTO_ACCEL: 650,
+        // Moto / jugador
+        MOTO_RADIO: 10,
         MOTO_MAX_SPEED: 320,
         MOTO_NITRO_SPEED: 480,
-        MOTO_FRICTION: 0.94,
+        MOTO_ACCEL_LERP: 4,
+        MOTO_FRICTION: 0.94,         // Por paso de simulación
         MOTO_ROTATE_SPEED: 3.8,
-        BATTERY_DRAIN_RATE: 0.8,    // Consumo por segundo andando
+        MOTO_REVERSA: 0.4,
+        BATTERY_DRAIN_RATE: 0.45,    // % por segundo andando
+        BATTERY_NITRO_MULT: 2.5,
 
-        // Obstáculos y Coleccionables
-        POTHOLE_COUNT: 24,
-        PLUS_COIN_COUNT: 35,
+        // Tinto Nitro
+        NITRO_INICIAL: 50,
+        NITRO_GASTO: 38,             // % por segundo
+        NITRO_POR_CASI: 25,
+        NITRO_POR_MONEDA: 4,
+        NITRO_POR_ENTREGA: 35,
+
+        // Obstáculos y coleccionables
+        POTHOLE_COUNT: 46,
         POTHOLE_DAMAGE: 15,          // Daño al paquete por hueco
+        POTHOLE_REPORTADOS: 0.6,     // Fracción de huecos que la comunidad ya reportó
+        POTHOLE_FRENADA: 0.35,       // Multiplicador de velocidad al caer
+        INVULNERABLE: 1.0,           // Segundos de gracia después de un golpe
+        PLUS_COIN_COUNT: 60,
+        TRANCON_COUNT: 26,           // Cuadras con trancón
+        TRANCON_FACTOR: 0.45,        // Velocidad máxima dentro del trancón
+        ENTREGA_RADIO: 36,
+        ENTREGA_DIST_MIN: 2200,      // Distancia mínima entre entregas (px)
+        ENTREGA_DIST_MAX: 4600,
 
-        // JUICE & Game Feel
+        // Economía Plus
+        PLUS_MONEDA: 10,
+        PLUS_ENTREGA: 50,
+        PLUS_CASI: 5,
+        PLUS_REPORTE: 15,
+        PLUS_ECO: 2,                 // Bonus por tramo de ciclorruta
+        PLUS_ECO_CADA: 150,          // Cada cuántos px de ciclorruta
+
+        // Copiloto IA
+        IA_PENAL_HUECO: { rapida: 0.5, segura: 7, eco: 2.5 }, // Segundos por hueco reportado
+        IA_ECO_FACTOR: 0.7,          // Descuento de costo en ciclorruta (perfil Eco)
+        IA_DESVIO_RECALCULO: 190,    // px fuera de la ruta para recalcular
+        IA_REPORTE_NPC_CADA: 11,     // Segundos entre reportes de la comunidad
+        IA_REPORTE_RADIO: 150,       // Alcance del botón Reportar (px)
+
+        // Estrellas
+        ESTRELLA_DANO_MAX: 20,       // 2.ª estrella: daño total menor a este %
+        ESTRELLA_EFICIENCIA: 90,     // 3.ª estrella: eficiencia mínima frente a la IA
+
+        // Game feel
         SHAKE_DECAY: 2.5,
-        HIT_STOP_DURATION: 70       // ms de congelamiento al golpear hueco
+        SHAKE_MAX: 18,
+        HIT_STOP_DURATION: 70        // ms de congelamiento al caer en un hueco
     };
 
+    const COLS = CONFIG.GRID_COLS, ROWS = CONFIG.GRID_ROWS;
+    const B = CONFIG.BLOCK_SIZE, SW = CONFIG.STREET_WIDTH;
+    const CELL = B + SW;
+    const GRID_W = COLS * CELL + SW, GRID_H = ROWS * CELL + SW;
+    const TAU = Math.PI * 2;
+    const MOTION = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.3 : 1;
+
+    const PERFILES = [
+        { id: 'rapida', nombre: 'Rápida', icono: '⚡', color: '#FFE600' },
+        { id: 'segura', nombre: 'Segura', icono: '🛡️', color: '#3483FA' },
+        { id: 'eco', nombre: 'Eco', icono: '🌱', color: '#00A650' }
+    ];
+
+    const FRASES_CLIENTE = [
+        'Sumercé, déjelo con el portero.',
+        '¡Qué chimba, llegó rapidísimo!',
+        '¡Uy, qué pena con usted, veci! Gracias.',
+        'Parce, era el conjunto de la reja verde.',
+        '¡Gracias, veci! Cinco estrellas.'
+    ];
+
     /* ==========================================================================
-       2. SINTETIZADOR DE AUDIO (WEB AUDIO API 100% GENERADO EN CÓDIGO)
+       2. UTILIDADES
+       ========================================================================== */
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const angDiff = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
+    const $ = (id) => document.getElementById(id);
+
+    // Escribe en el DOM solo cuando el valor cambia
+    const _cacheTexto = {};
+    function setText(id, v) {
+        if (_cacheTexto[id] !== v) { _cacheTexto[id] = v; $(id).textContent = v; }
+    }
+
+    // Generador aleatorio con semilla (mismo mapa al reintentar)
+    function mulberry32(a) {
+        return function () {
+            a |= 0; a = a + 0x6D2B79F5 | 0;
+            let t = Math.imul(a ^ a >>> 15, 1 | a);
+            t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        };
+    }
+
+    // Respaldo para navegadores sin roundRect
+    if (!CanvasRenderingContext2D.prototype.roundRect) {
+        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h) { this.rect(x, y, w, h); };
+    }
+
+    // Nomenclatura bogotana: las calles suben al norte y las carreras al occidente
+    const calleDe = (r) => CONFIG.CALLE_NORTE - r;
+    const carreraDe = (c) => CONFIG.CARRERA_ORIENTE + (COLS - c);
+    const nombreCalle = (r) => `la Calle ${calleDe(r)}`;
+    function nombreCarrera(c) {
+        const n = carreraDe(c);
+        if (n === 7) return 'la Séptima';
+        if (n === 14) return 'la Caracas';
+        return `la Carrera ${n}`;
+    }
+    const nombreVia = (e) => e.h ? nombreCalle(e.r) : nombreCarrera(e.c);
+
+    // Punto dentro de una cuadra: "a" a lo largo (0..B) y "l" lateral (-SW/2..SW/2)
+    function puntoArista(e, a, l) {
+        return e.h
+            ? { x: e.c * CELL + SW + a, y: e.r * CELL + SW / 2 + l }
+            : { x: e.c * CELL + SW / 2 + l, y: e.r * CELL + SW + a };
+    }
+
+    /* ==========================================================================
+       3. AUDIO (WEB AUDIO API, 100% GENERADO EN CÓDIGO)
        ========================================================================== */
     class SoundEngine {
         constructor() {
@@ -568,355 +873,559 @@
         }
 
         init() {
-            if (this.initialized) return;
+            if (this.initialized) {
+                if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+                return;
+            }
             try {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 this.ctx = new AudioCtx();
                 this.initialized = true;
             } catch (e) {
-                console.warn("Web Audio API no soportada.");
+                console.warn('Web Audio API no soportada.');
             }
         }
 
-        playTone(freq, type, duration, volStart = 0.2, volEnd = 0.001) {
+        playTone(freq, type, duration, volStart = 0.2, freqEnd = 0) {
             if (!this.initialized || !this.ctx) return;
+            const t = this.ctx.currentTime;
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
-
             osc.type = type;
-            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-
-            gain.gain.setValueAtTime(volStart, this.ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(volEnd, this.ctx.currentTime + duration);
-
+            osc.frequency.setValueAtTime(freq, t);
+            if (freqEnd) osc.frequency.exponentialRampToValueAtTime(freqEnd, t + duration);
+            gain.gain.setValueAtTime(volStart, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
             osc.connect(gain);
             gain.connect(this.ctx.destination);
-
             osc.start();
-            osc.stop(this.ctx.currentTime + duration);
+            osc.stop(t + duration);
         }
 
-        playCoin() {
-            if (!this.initialized) return;
-            this.playTone(987.77, 'sine', 0.08, 0.25); // B5
-            setTimeout(() => this.playTone(1318.51, 'sine', 0.15, 0.25), 60); // E6
+        secuencia(notas, tipo, dur, vol, paso) {
+            notas.forEach((f, i) => setTimeout(() => this.playTone(f, tipo, dur, vol), i * paso));
         }
+
+        playCoin() { this.secuencia([987.77, 1318.51], 'sine', 0.12, 0.22, 60); }
+        playDelivery() { this.secuencia([523.25, 659.25, 783.99, 1046.5], 'triangle', 0.12, 0.2, 70); }
+        playTick() { this.playTone(800, 'square', 0.03, 0.05); }
+        playWin() { this.secuencia([440, 554.37, 659.25, 880], 'sine', 0.3, 0.3, 120); }
+        playLose() { this.secuencia([400, 350, 300, 250], 'sawtooth', 0.25, 0.2, 100); }
+        playNitro() { this.playTone(180, 'sawtooth', 0.35, 0.12, 720); }
+        playNear() { this.playTone(660, 'triangle', 0.1, 0.15, 990); }
+        playReport() { this.secuencia([740, 988], 'square', 0.07, 0.08, 70); }
+        playRecalc() { this.secuencia([520, 440], 'sine', 0.1, 0.12, 90); }
+        playBeep(f) { this.playTone(f, 'square', 0.12, 0.12); }
 
         playHit() {
             if (!this.initialized || !this.ctx) return;
-            // Ruido sordo para el hueco
-            const bufferSize = this.ctx.sampleRate * 0.15;
-            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            // Ruido sordo filtrado para el hueco
+            const n = Math.floor(this.ctx.sampleRate * 0.15);
+            const buffer = this.ctx.createBuffer(1, n, this.ctx.sampleRate);
             const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = Math.random() * 2 - 1;
-            }
-
+            for (let i = 0; i < n; i++) data[i] = Math.random() * 2 - 1;
             const noise = this.ctx.createBufferSource();
             noise.buffer = buffer;
-
             const filter = this.ctx.createBiquadFilter();
             filter.type = 'lowpass';
             filter.frequency.setValueAtTime(200, this.ctx.currentTime);
-
             const gain = this.ctx.createGain();
             gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
-
             noise.connect(filter);
             filter.connect(gain);
             gain.connect(this.ctx.destination);
-
             noise.start();
-        }
-
-        playDelivery() {
-            if (!this.initialized) return;
-            // Arpegio victorioso de entrega
-            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-            notes.forEach((freq, idx) => {
-                setTimeout(() => this.playTone(freq, 'triangle', 0.12, 0.2), idx * 70);
-            });
-        }
-
-        playTick() {
-            this.playTone(800, 'square', 0.03, 0.05);
-        }
-
-        playWin() {
-            if (!this.initialized) return;
-            const notes = [440, 554.37, 659.25, 880];
-            notes.forEach((f, i) => setTimeout(() => this.playTone(f, 'sine', 0.3, 0.3), i * 120));
-        }
-
-        playLose() {
-            if (!this.initialized) return;
-            const notes = [400, 350, 300, 250];
-            notes.forEach((f, i) => setTimeout(() => this.playTone(f, 'sawtooth', 0.25, 0.2), i * 100));
         }
     }
 
     const sound = new SoundEngine();
 
     /* ==========================================================================
-       3. SISTEMA DE PARTÍCULAS CON POOLING (GAME FEEL)
+       4. PARTÍCULAS Y TEXTOS FLOTANTES (CON POOLING)
        ========================================================================== */
     class ParticlePool {
-        constructor(size = 150) {
+        constructor(size = 220) {
             this.pool = [];
+            this.cursor = 0;
             for (let i = 0; i < size; i++) {
-                this.pool.push({
-                    active: false,
-                    x: 0, y: 0,
-                    vx: 0, vy: 0,
-                    size: 0,
-                    color: '#FFF',
-                    life: 0,
-                    maxLife: 1
-                });
+                this.pool.push({ active: false, x: 0, y: 0, vx: 0, vy: 0, size: 0, color: '#FFF', life: 0, maxLife: 1 });
             }
         }
 
         spawn(x, y, vx, vy, size, color, maxLife) {
-            const p = this.pool.find(p => !p.active);
-            if (p) {
+            const n = this.pool.length;
+            for (let i = 0; i < n; i++) {
+                const p = this.pool[(this.cursor + i) % n];
+                if (p.active) continue;
+                this.cursor = (this.cursor + i + 1) % n;
                 p.active = true;
-                p.x = x; p.y = y;
-                p.vx = vx; p.vy = vy;
-                p.size = size;
-                p.color = color;
-                p.life = 0;
-                p.maxLife = maxLife;
+                p.x = x; p.y = y; p.vx = vx; p.vy = vy;
+                p.size = size; p.color = color; p.life = 0; p.maxLife = maxLife;
+                return;
+            }
+        }
+
+        // Ráfaga radial (choques, monedas, confeti)
+        burst(x, y, n, fuerza, size, colores, vida) {
+            n = Math.ceil(n * MOTION);
+            for (let i = 0; i < n; i++) {
+                const col = Array.isArray(colores) ? colores[i % colores.length] : colores;
+                this.spawn(x, y, (Math.random() - 0.5) * fuerza, (Math.random() - 0.5) * fuerza, size, col, vida);
             }
         }
 
         update(dt) {
-            for (let p of this.pool) {
-                if (p.active) {
-                    p.life += dt;
-                    if (p.life >= p.maxLife) {
-                        p.active = false;
-                    } else {
-                        p.x += p.vx * dt;
-                        p.y += p.vy * dt;
-                    }
-                }
+            for (const p of this.pool) {
+                if (!p.active) continue;
+                p.life += dt;
+                if (p.life >= p.maxLife) { p.active = false; continue; }
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.vx *= 0.96; p.vy *= 0.96;
             }
         }
 
         draw(ctx) {
-            for (let p of this.pool) {
-                if (p.active) {
-                    const alpha = 1 - (p.life / p.maxLife);
-                    ctx.save();
-                    ctx.globalAlpha = alpha;
-                    ctx.fillStyle = p.color;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size * (1 - p.life / p.maxLife * 0.5), 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
-                }
+            for (const p of this.pool) {
+                if (!p.active) continue;
+                const k = p.life / p.maxLife;
+                ctx.globalAlpha = 1 - k;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * (1 - k * 0.5), 0, TAU);
+                ctx.fill();
             }
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    class TextosFlotantes {
+        constructor(n = 24) {
+            this.pool = [];
+            for (let i = 0; i < n; i++) this.pool.push({ on: false, x: 0, y: 0, t: 0, max: 1, txt: '', col: '#FFF', size: 16 });
+        }
+
+        spawn(x, y, txt, col = '#FFFFFF', max = 1, size = 16) {
+            const p = this.pool.find(q => !q.on) || this.pool[0];
+            p.on = true; p.x = x; p.y = y; p.t = 0; p.max = max; p.txt = txt; p.col = col; p.size = size;
+        }
+
+        update(dt) {
+            for (const p of this.pool) {
+                if (!p.on) continue;
+                p.t += dt;
+                p.y -= 26 * dt;
+                if (p.t >= p.max) p.on = false;
+            }
+        }
+
+        draw(ctx) {
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.lineJoin = 'round';
+            for (const p of this.pool) {
+                if (!p.on) continue;
+                const k = p.t / p.max;
+                const pop = Math.min(1, p.t / 0.15);           // Entra con un pequeño "pop"
+                const esc = 0.6 + 0.4 * pop + 0.15 * Math.sin(pop * Math.PI);
+                ctx.globalAlpha = 1 - k * k;
+                ctx.font = `900 ${Math.round(p.size * esc)}px ui-rounded, system-ui, sans-serif`;
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = 'rgba(18,22,26,0.85)';
+                ctx.strokeText(p.txt, p.x, p.y);
+                ctx.fillStyle = p.col;
+                ctx.fillText(p.txt, p.x, p.y);
+            }
+            ctx.globalAlpha = 1;
         }
     }
 
     /* ==========================================================================
-       4. GENERACIÓN DEL MAPA PROCEDURAL BOGOTANO (CHAPINERO)
+       5. MAPA PROCEDURAL DE CHAPINERO (GRILLA + GRAFO DE CALLES)
        ========================================================================== */
+
+    // Sprites de manzana pre-renderizados una sola vez y reutilizados
+    let SPRITES_MANZANA = null;
+    function crearSpritesManzana() {
+        const out = [];
+        const rnd = mulberry32(2024);
+        const ladrillos = ['#B2533E', '#A8482F', '#C0624A', '#9C4A3A', '#B85C38', '#8F4B3B'];
+        for (let v = 0; v < 6; v++) {
+            const cv = document.createElement('canvas');
+            cv.width = cv.height = B + 16;
+            const g = cv.getContext('2d');
+
+            // Andén
+            g.fillStyle = '#C5C9D0';
+            g.beginPath();
+            g.roundRect(0, 0, B + 16, B + 16, 12);
+            g.fill();
+
+            // Cuatro lotes por manzana, con cortes distintos en cada variante
+            const sx = 80 + rnd() * 60, sy = 80 + rnd() * 60;
+            const lotes = [[0, 0, sx, sy], [sx, 0, B - sx, sy], [0, sy, sx, B - sy], [sx, sy, B - sx, B - sy]];
+            for (const [x, y, w, h] of lotes) {
+                const ox = 8 + x, oy = 8 + y;
+                if (rnd() < 0.14) {
+                    // Parquecito de barrio
+                    g.fillStyle = '#4A7C59';
+                    g.beginPath();
+                    g.roundRect(ox + 3, oy + 3, w - 6, h - 6, 8);
+                    g.fill();
+                    g.fillStyle = '#2E6B4F';
+                    for (let i = 0; i < 4; i++) {
+                        g.beginPath();
+                        g.arc(ox + 18 + rnd() * (w - 36), oy + 18 + rnd() * (h - 36), 9 + rnd() * 5, 0, TAU);
+                        g.fill();
+                    }
+                    continue;
+                }
+                // Edificio de ladrillo con techo en 2.5D
+                g.fillStyle = ladrillos[Math.floor(rnd() * ladrillos.length)];
+                g.beginPath();
+                g.roundRect(ox + 2, oy + 2, w - 4, h - 4, 5);
+                g.fill();
+                g.fillStyle = 'rgba(0,0,0,0.22)';
+                g.fillRect(ox + 11, oy + 11, w - 17, h - 17);
+                g.fillStyle = 'rgba(255,255,255,0.12)';
+                g.fillRect(ox + 7, oy + 7, w - 19, h - 19);
+                // Tanque de agua en el techo
+                g.fillStyle = '#D9DDE3';
+                g.beginPath();
+                g.arc(ox + w * (0.3 + rnd() * 0.4), oy + h * (0.3 + rnd() * 0.4), 6, 0, TAU);
+                g.fill();
+            }
+            out.push(cv);
+        }
+        return out;
+    }
+
     class BogotaMap {
-        constructor() {
-            this.width = CONFIG.GRID_COLS * (CONFIG.BLOCK_SIZE + CONFIG.STREET_WIDTH) + CONFIG.STREET_WIDTH;
-            this.height = CONFIG.GRID_ROWS * (CONFIG.BLOCK_SIZE + CONFIG.STREET_WIDTH) + CONFIG.STREET_WIDTH;
-            this.offscreenCanvas = document.createElement('canvas');
-            this.offscreenCanvas.width = this.width;
-            this.offscreenCanvas.height = this.height;
+        constructor(seed) {
+            this.seed = seed;
+            this.rnd = mulberry32(seed);
+            this.width = GRID_W;
+            this.height = GRID_H;
+            if (!SPRITES_MANZANA) SPRITES_MANZANA = crearSpritesManzana();
+
+            // Cuadras (aristas del grafo): horizontales = calles, verticales = carreras
+            this.edgesH = [];
+            this.edgesV = [];
+            const nueva = (h, r, c) => ({ h, r, c, traffic: false, eco: false, holes: [], cars: null });
+            for (let r = 0; r <= ROWS; r++) for (let c = 0; c < COLS; c++) this.edgesH.push(nueva(true, r, c));
+            for (let r = 0; r < ROWS; r++) for (let c = 0; c <= COLS; c++) this.edgesV.push(nueva(false, r, c));
+            this.edges = this.edgesH.concat(this.edgesV);
 
             this.potholes = [];
             this.coins = [];
             this.deliveries = [];
 
-            this.generateMap();
-            this.renderStaticMap();
+            // La moto arranca en la intersección central
+            this.startX = 7 * CELL + SW / 2;
+            this.startY = 7 * CELL + SW / 2;
+
+            this.generar();
         }
 
-        generateMap() {
-            // Generar Huecos aleatorios en las calles
-            for (let i = 0; i < CONFIG.POTHOLE_COUNT; i++) {
-                let pos = this.getRandomStreetPoint();
-                this.potholes.push({ x: pos.x, y: pos.y, radius: 18 + Math.random() * 8 });
-            }
+        generar() {
+            const rnd = this.rnd;
+            const azar = (arr) => arr[Math.floor(rnd() * arr.length)];
 
-            // Generar Monedas Plus
-            for (let i = 0; i < CONFIG.PLUS_COIN_COUNT; i++) {
-                let pos = this.getRandomStreetPoint();
-                this.coins.push({ x: pos.x, y: pos.y, radius: 10, active: true });
-            }
+            // Ciclorrutas: dos calles y dos carreras completas
+            const filasEco = [2 + Math.floor(rnd() * 4), 8 + Math.floor(rnd() * 4)];
+            const colsEco = [2 + Math.floor(rnd() * 4), 8 + Math.floor(rnd() * 4)];
+            for (const e of this.edgesH) if (filasEco.includes(e.r)) e.eco = true;
+            for (const e of this.edgesV) if (colsEco.includes(e.c)) e.eco = true;
 
-            // Generar 5 puntos de entrega con nomenclatura bogotana real
-            const callesBase = 60; // Chapinero: Calles 60 a 90
-            const carrerasBase = 7; // Carreras 7 a 15
-            for (let i = 0; i < CONFIG.ENTREGAS_META; i++) {
-                let pos = this.getRandomBuildingPoint();
-                let calle = callesBase + Math.floor(Math.random() * 25);
-                let carrera = carrerasBase + Math.floor(Math.random() * 8);
-                let numero = Math.floor(10 + Math.random() * 80);
-                let placa = Math.floor(10 + Math.random() * 80);
-
-                this.deliveries.push({
-                    id: i + 1,
-                    x: pos.x,
-                    y: pos.y,
-                    address: `Calle ${calle} # ${carrera}-${numero}`,
-                    delivered: false
-                });
-            }
-        }
-
-        getRandomStreetPoint() {
-            // Posición aleatoria dentro del asfalto
-            const isHorizontal = Math.random() > 0.5;
-            let col = Math.floor(Math.random() * CONFIG.GRID_COLS);
-            let row = Math.floor(Math.random() * CONFIG.GRID_ROWS);
-
-            let x, y;
-            if (isHorizontal) {
-                x = Math.random() * this.width;
-                y = row * (CONFIG.BLOCK_SIZE + CONFIG.STREET_WIDTH) + CONFIG.STREET_WIDTH / 2;
-            } else {
-                x = col * (CONFIG.BLOCK_SIZE + CONFIG.STREET_WIDTH) + CONFIG.STREET_WIDTH / 2;
-                y = Math.random() * this.height;
-            }
-            return { x, y };
-        }
-
-        getRandomBuildingPoint() {
-            let col = Math.floor(Math.random() * CONFIG.GRID_COLS);
-            let row = Math.floor(Math.random() * CONFIG.GRID_ROWS);
-            let x = col * (CONFIG.BLOCK_SIZE + CONFIG.STREET_WIDTH) + CONFIG.STREET_WIDTH + CONFIG.BLOCK_SIZE / 2;
-            let y = row * (CONFIG.BLOCK_SIZE + CONFIG.STREET_WIDTH) + CONFIG.STREET_WIDTH + CONFIG.BLOCK_SIZE / 2;
-            return { x, y };
-        }
-
-        renderStaticMap() {
-            const ctx = this.offscreenCanvas.getContext('2d');
-
-            // Fondo Asfalto base
-            ctx.fillStyle = '#2A2E33';
-            ctx.fillRect(0, 0, this.width, this.height);
-
-            // Dibujar Manzanas y Edificios (Vista 2.5D Estilizada)
-            const bSize = CONFIG.BLOCK_SIZE;
-            const sWidth = CONFIG.STREET_WIDTH;
-
-            for (let r = 0; r < CONFIG.GRID_ROWS; r++) {
-                for (let c = 0; c < CONFIG.GRID_COLS; c++) {
-                    const bx = c * (bSize + sWidth) + sWidth;
-                    const by = r * (bSize + sWidth) + sWidth;
-
-                    // Andén
-                    ctx.fillStyle = '#C5C9D0';
-                    ctx.beginPath();
-                    ctx.roundRect(bx - 8, by - 8, bSize + 16, bSize + 16, 12);
-                    ctx.fill();
-
-                    // Manzana de Edificios (Ladrillo Bogotano)
-                    ctx.fillStyle = '#B2533E'; // Ladrillo rojo rolo
-                    ctx.beginPath();
-                    ctx.roundRect(bx, by, bSize, bSize, 8);
-                    ctx.fill();
-
-                    // Sombra / Techos 2.5D
-                    ctx.fillStyle = '#8B3A2B';
-                    ctx.fillRect(bx + 15, by + 15, bSize - 30, bSize - 30);
-
-                    // Detalles de ventanas / zonas verdes internas
-                    ctx.fillStyle = '#4A7c59';
-                    ctx.beginPath();
-                    ctx.arc(bx + bSize/2, by + bSize/2, 25, 0, Math.PI * 2);
-                    ctx.fill();
+            // Trancones: cuadras llenas de carros donde toca filtrarse despacio
+            const coloresCarro = ['#D9DDE3', '#F23D4F', '#7A8794', '#F5F5F5', '#3A3F47', '#E8B93B'];
+            let puestos = 0, intentos = 0;
+            while (puestos < CONFIG.TRANCON_COUNT && intentos++ < 400) {
+                const e = azar(this.edges);
+                const p = puntoArista(e, B / 2, 0);
+                if (e.traffic || e.eco || Math.hypot(p.x - this.startX, p.y - this.startY) < 320) continue;
+                e.traffic = true;
+                e.cars = [];
+                for (const carril of [-21, 21]) {
+                    for (let a = 18; a < 205; a += 46) e.cars.push({ a: a + rnd() * 8, l: carril, col: azar(coloresCarro) });
                 }
+                puestos++;
             }
 
-            // Marcas viales en las calles
-            ctx.strokeStyle = '#FFFFFF';
-            ctx.lineWidth = 4;
-            ctx.setLineDash([20, 20]);
+            // Entregas: puertas sobre la cara de una manzana, con dirección real
+            let px = this.startX, py = this.startY;
+            for (let i = 0; i < CONFIG.ENTREGAS_META; i++) {
+                let d = null;
+                for (let t = 0; t < 120; t++) {
+                    d = this.crearEntrega(i + 1);
+                    const man = Math.abs(d.x - px) + Math.abs(d.y - py);
+                    if (man >= CONFIG.ENTREGA_DIST_MIN && man <= CONFIG.ENTREGA_DIST_MAX) break;
+                }
+                this.deliveries.push(d);
+                px = d.x; py = d.y;
+            }
 
-            // Líneas de carril
-            for (let r = 0; r <= CONFIG.GRID_ROWS; r++) {
-                let y = r * (bSize + sWidth) + sWidth / 2;
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(this.width, y);
-                ctx.stroke();
+            // Huecos: desplazados hacia un carril para que se puedan esquivar
+            intentos = 0;
+            while (this.potholes.length < CONFIG.POTHOLE_COUNT && intentos++ < 600) {
+                const e = azar(this.edges);
+                const a = 30 + rnd() * 160;
+                if (e.holes.some(h => Math.abs(h.a - a) < 60)) continue;
+                const l = (rnd() < 0.5 ? -1 : 1) * (9 + rnd() * 19);
+                const p = puntoArista(e, a, l);
+                if (this.deliveries.some(d => Math.hypot(d.x - p.x, d.y - p.y) < 60)) continue;
+                const pts = [];
+                for (let k = 0; k < 9; k++) pts.push(0.78 + rnd() * 0.4);
+                const hole = {
+                    x: p.x, y: p.y, a, r: 13 + rnd() * 6, edge: e, pts,
+                    reported: rnd() < CONFIG.POTHOLE_REPORTADOS,
+                    cool: 0, near: false, pop: 0
+                };
+                e.holes.push(hole);
+                this.potholes.push(hole);
             }
-            for (let c = 0; c <= CONFIG.GRID_COLS; c++) {
-                let x = c * (bSize + sWidth) + sWidth / 2;
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, this.height);
-                ctx.stroke();
+
+            // Monedas Plus
+            intentos = 0;
+            while (this.coins.length < CONFIG.PLUS_COIN_COUNT && intentos++ < 600) {
+                const e = azar(this.edges);
+                const p = puntoArista(e, 20 + rnd() * 180, (rnd() - 0.5) * 44);
+                if (e.holes.some(h => Math.hypot(h.x - p.x, h.y - p.y) < 42)) continue;
+                this.coins.push({ x: p.x, y: p.y, radius: 10, active: true, fase: rnd() * TAU });
             }
-            ctx.setLineDash([]); // Reset
         }
 
-        draw(ctx) {
-            // Renderizar el mapa estático cacheado
-            ctx.drawImage(this.offscreenCanvas, 0, 0);
+        crearEntrega(id) {
+            const rnd = this.rnd;
+            const c = Math.floor(rnd() * COLS), r = Math.floor(rnd() * ROWS);
+            const lado = Math.floor(rnd() * 4);          // 0 norte, 1 sur, 2 occidente, 3 oriente
+            const o = 40 + rnd() * 140;                  // Posición de la puerta sobre la cara
+            const NC = COLS + 1;
+            const placa = String(clamp(Math.round((B - o) / CONFIG.PX_POR_METRO), 1, 99)).padStart(2, '0');
+            const sufijos = ['Apto 502', 'Torre 2, Apto 301', 'Local 3', 'Portería', 'Casa', 'Apto 204'];
+            const sufijo = sufijos[Math.floor(rnd() * sufijos.length)];
+            let d;
+            if (lado < 2) {
+                // Puerta sobre una calle: el número sale de la carrera menor (la del oriente)
+                const fila = lado === 0 ? r : r + 1;
+                const doorX = c * CELL + SW + o;
+                const doorY = lado === 0 ? r * CELL + SW : (r + 1) * CELL;
+                d = {
+                    doorX, doorY, x: doorX, y: doorY + (lado === 0 ? -22 : 22),
+                    sx: doorX, sy: fila * CELL + SW / 2,
+                    edge: this.edgesH[fila * COLS + c],
+                    address: `Calle ${calleDe(fila)} # ${carreraDe(c + 1)}-${placa}`
+                };
+            } else {
+                // Puerta sobre una carrera: el número sale de la calle menor (la del sur)
+                const col = lado === 2 ? c : c + 1;
+                const doorX = lado === 2 ? c * CELL + SW : (c + 1) * CELL;
+                const doorY = r * CELL + SW + o;
+                d = {
+                    doorX, doorY, x: doorX + (lado === 2 ? -22 : 22), y: doorY,
+                    sx: col * CELL + SW / 2, sy: doorY,
+                    edge: this.edgesV[r * NC + col],
+                    address: `Carrera ${carreraDe(col)} # ${calleDe(r + 1)}-${placa}`
+                };
+            }
+            d.id = id;
+            d.detalle = sufijo;
+            d.delivered = false;
+            return d;
+        }
 
-            // Renderizar los Cerros Orientales al borde Este (Oriente bogotano)
-            ctx.save();
-            ctx.fillStyle = '#1B4D3E';
-            ctx.globalAlpha = 0.85;
-            ctx.beginPath();
-            ctx.moveTo(this.width - 40, 0);
-            ctx.lineTo(this.width, 0);
-            ctx.lineTo(this.width, this.height);
-            ctx.lineTo(this.width - 40, this.height);
-            ctx.fill();
+        // Cuadra en la que está un punto (null si está en una intersección)
+        edgeAt(x, y) {
+            const col = clamp(Math.floor(x / CELL), 0, COLS), row = clamp(Math.floor(y / CELL), 0, ROWS);
+            const inV = x - col * CELL < SW, inH = y - row * CELL < SW;
+            if (inH && !inV) return this.edgesH[row * COLS + col];
+            if (inV && !inH) return this.edgesV[row * (COLS + 1) + col];
+            return null;
+        }
 
-            // Etiqueta Cerros Orientales
-            ctx.fillStyle = '#FFF';
-            ctx.font = 'bold 16px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.save();
-            ctx.translate(this.width - 15, this.height / 2);
-            ctx.rotate(Math.PI / 2);
-            ctx.fillText("🏔️ CERROS ORIENTALES (ESTE)", 0, 0);
-            ctx.restore();
-            ctx.restore();
+        // Mantiene un círculo dentro del asfalto. Devuelve true si rozó un andén.
+        resolver(o, R) {
+            let hit = false;
+            if (o.x < R) { o.x = R; hit = true; }
+            if (o.x > GRID_W - R) { o.x = GRID_W - R; hit = true; }
+            if (o.y < R) { o.y = R; hit = true; }
+            if (o.y > GRID_H - R) { o.y = GRID_H - R; hit = true; }
 
-            // Renderizar Huecos
-            for (let hole of this.potholes) {
+            const col = Math.floor(o.x / CELL), row = Math.floor(o.y / CELL);
+            const lx = o.x - col * CELL, ly = o.y - row * CELL;
+            const inV = lx < SW, inH = ly < SW;
+            if (inV && inH) return hit;                  // Intersección: libre
+            if (inV) {
+                if (lx < R) { o.x = col * CELL + R; hit = true; }
+                else if (lx > SW - R) { o.x = col * CELL + SW - R; hit = true; }
+            } else if (inH) {
+                if (ly < R) { o.y = row * CELL + R; hit = true; }
+                else if (ly > SW - R) { o.y = row * CELL + SW - R; hit = true; }
+            } else {
+                // Dentro de una manzana: sale por el borde más cercano
+                const dW = lx - SW, dE = CELL - lx, dN = ly - SW, dS = CELL - ly;
+                const m = Math.min(dW, dE, dN, dS);
+                if (m === dW) o.x = col * CELL + SW - R;
+                else if (m === dE) o.x = (col + 1) * CELL + R;
+                else if (m === dN) o.y = row * CELL + SW - R;
+                else o.y = (row + 1) * CELL + R;
+                hit = true;
+            }
+            return hit;
+        }
+
+        dibujarCuadra(ctx, e) {
+            const x = e.h ? e.c * CELL + SW : e.c * CELL;
+            const y = e.h ? e.r * CELL : e.r * CELL + SW;
+
+            if (e.eco) {
+                ctx.fillStyle = 'rgba(0,166,80,0.55)';
+                if (e.h) ctx.fillRect(x, y + 10, B, 12); else ctx.fillRect(x + 10, y, 12, B);
+            }
+
+            // Nombre de la vía pintado en el asfalto
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            if (e.h) {
+                ctx.fillText('CL ' + calleDe(e.r), x + B / 2, y + SW - 22);
+            } else {
                 ctx.save();
-                ctx.fillStyle = '#111';
-                ctx.beginPath();
-                ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = '#F23D4F';
-                ctx.lineWidth = 2;
-                ctx.stroke();
+                ctx.translate(x + SW - 22, y + B / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillText('KR ' + carreraDe(e.c), 0, 0);
                 ctx.restore();
             }
 
-            // Renderizar Monedas Plus
-            const time = Date.now() * 0.005;
-            for (let coin of this.coins) {
-                if (!coin.active) continue;
-                ctx.save();
-                ctx.translate(coin.x, coin.y + Math.sin(time + coin.x) * 3);
-                ctx.fillStyle = '#FFE600';
-                ctx.beginPath();
-                ctx.arc(0, 0, coin.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = '#3483FA';
-                ctx.lineWidth = 2;
-                ctx.stroke();
+            if (e.traffic) {
+                for (const car of e.cars) {
+                    const p = puntoArista(e, car.a, car.l);
+                    const w = e.h ? 32 : 17, h = e.h ? 17 : 32;
+                    ctx.fillStyle = car.col;
+                    ctx.beginPath();
+                    ctx.roundRect(p.x - w / 2, p.y - h / 2, w, h, 5);
+                    ctx.fill();
+                    ctx.fillStyle = 'rgba(18,22,26,0.55)';
+                    ctx.fillRect(p.x - w / 4, p.y - h / 4, w / 2, h / 2);
+                }
+            }
+        }
 
-                ctx.fillStyle = '#1A1A1A';
-                ctx.font = 'bold 10px sans-serif';
+        draw(ctx, v, t) {
+            const x0 = Math.max(0, v.x0), y0 = Math.max(0, v.y0);
+            const x1 = Math.min(GRID_W, v.x1), y1 = Math.min(GRID_H, v.y1);
+
+            if (x1 > x0 && y1 > y0) {
+                // Asfalto (solo lo visible: culling)
+                ctx.fillStyle = '#2A2E33';
+                ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+
+                const c0 = Math.floor(x0 / CELL), c1 = Math.min(COLS, Math.floor(x1 / CELL));
+                const r0 = Math.floor(y0 / CELL), r1 = Math.min(ROWS, Math.floor(y1 / CELL));
+
+                // Líneas de carril
+                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([18, 22]);
+                ctx.beginPath();
+                const sx = Math.floor(x0 / 40) * 40, sy = Math.floor(y0 / 40) * 40;
+                for (let r = r0; r <= r1; r++) { ctx.moveTo(sx, r * CELL + SW / 2); ctx.lineTo(x1, r * CELL + SW / 2); }
+                for (let c = c0; c <= c1; c++) { ctx.moveTo(c * CELL + SW / 2, sy); ctx.lineTo(c * CELL + SW / 2, y1); }
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Cuadras: ciclorruta, nombre de la vía y trancón
+                ctx.font = 'bold 13px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
+                for (let r = r0; r <= r1; r++) {
+                    for (let c = c0; c <= Math.min(COLS - 1, c1); c++) this.dibujarCuadra(ctx, this.edgesH[r * COLS + c]);
+                }
+                for (let r = r0; r <= Math.min(ROWS - 1, r1); r++) {
+                    for (let c = c0; c <= c1; c++) this.dibujarCuadra(ctx, this.edgesV[r * (COLS + 1) + c]);
+                }
+
+                // Manzanas
+                for (let r = r0; r <= Math.min(ROWS - 1, r1); r++) {
+                    for (let c = c0; c <= Math.min(COLS - 1, c1); c++) {
+                        ctx.drawImage(SPRITES_MANZANA[(c * 7 + r * 13 + this.seed) % 6], c * CELL + SW - 8, r * CELL + SW - 8);
+                    }
+                }
+            }
+
+            // Cerros orientales: la brújula natural del mapa
+            if (v.x1 > GRID_W) {
+                const cy0 = Math.max(-300, v.y0), cy1 = Math.min(GRID_H + 300, v.y1);
+                ctx.fillStyle = '#1B4D3E';
+                ctx.fillRect(GRID_W, cy0, CONFIG.CERROS_ANCHO, cy1 - cy0);
+                ctx.fillStyle = '#2E6B4F';
+                for (let y = Math.floor(cy0 / 150) * 150; y < cy1; y += 150) {
+                    ctx.beginPath();
+                    ctx.arc(GRID_W + 60 + ((y / 150) % 2) * 40, y, 52, 0, TAU);
+                    ctx.fill();
+                }
+                ctx.fillStyle = 'rgba(255,255,255,0.85)';
+                ctx.font = 'bold 15px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                for (let y = Math.floor(cy0 / 700) * 700 + 350; y < cy1; y += 700) {
+                    ctx.save();
+                    ctx.translate(GRID_W + CONFIG.CERROS_ANCHO - 26, y);
+                    ctx.rotate(Math.PI / 2);
+                    ctx.fillText('🏔️ CERROS ORIENTALES', 0, 0);
+                    ctx.restore();
+                }
+            }
+
+            // Huecos: los reportados laten en rojo; los demás apenas se ven
+            const pulso = 0.5 + 0.5 * Math.sin(t * 6);
+            ctx.lineWidth = 2;
+            for (const h of this.potholes) {
+                if (h.x < v.x0 - 80 || h.x > v.x1 + 80 || h.y < v.y0 - 80 || h.y > v.y1 + 80) continue;
+                ctx.fillStyle = '#0E0F11';
+                ctx.beginPath();
+                for (let i = 0; i < h.pts.length; i++) {
+                    const a = i / h.pts.length * TAU, rr = h.r * h.pts[i];
+                    ctx.lineTo(h.x + Math.cos(a) * rr, h.y + Math.sin(a) * rr);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = h.reported ? '#F23D4F' : 'rgba(96,102,110,0.9)';
+                ctx.stroke();
+                if (h.reported) {
+                    ctx.strokeStyle = `rgba(242,61,79,${0.2 + 0.35 * pulso})`;
+                    ctx.beginPath();
+                    ctx.arc(h.x, h.y, h.r + 7 + 3 * pulso, 0, TAU);
+                    ctx.stroke();
+                }
+                if (h.pop > 0) {
+                    // "Pop" cuando alguien lo acaba de reportar
+                    ctx.strokeStyle = `rgba(255,230,0,${h.pop})`;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(h.x, h.y, h.r + (1 - h.pop) * 60, 0, TAU);
+                    ctx.stroke();
+                    ctx.lineWidth = 2;
+                }
+            }
+
+            // Monedas Plus: giran y flotan
+            ctx.font = 'bold 11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            for (const coin of this.coins) {
+                if (!coin.active) continue;
+                if (coin.x < v.x0 - 20 || coin.x > v.x1 + 20 || coin.y < v.y0 - 20 || coin.y > v.y1 + 20) continue;
+                const giro = Math.cos(t * 4 + coin.fase);
+                ctx.save();
+                ctx.translate(coin.x, coin.y + Math.sin(t * 3 + coin.fase) * 3);
+                ctx.scale(0.35 + 0.65 * Math.abs(giro), 1);
+                ctx.fillStyle = '#FFE600';
+                ctx.strokeStyle = '#3483FA';
+                ctx.beginPath();
+                ctx.arc(0, 0, coin.radius, 0, TAU);
+                ctx.fill();
+                ctx.stroke();
+                ctx.fillStyle = '#1A1A1A';
                 ctx.fillText('+', 0, 0);
                 ctx.restore();
             }
@@ -924,153 +1433,561 @@
     }
 
     /* ==========================================================================
-       5. JUGADOR / VEHÍCULO (MOTO ROLA CON FÍSICA Y ANIMACIÓN)
+       6. PLANIFICADOR DE RUTAS (A* SOBRE EL GRAFO DE CALLES)
+       ========================================================================== */
+    class RoutePlanner {
+        constructor(map) {
+            this.map = map;
+            this.NC = COLS + 1;
+            this.N = this.NC * (ROWS + 1);
+            // El nodo N es la meta virtual (la puerta del cliente)
+            this.g = new Float64Array(this.N + 1);
+            this.prev = new Int16Array(this.N + 1);
+            this.cerr = new Uint8Array(this.N + 1);
+        }
+
+        pos(id) {
+            return { x: (id % this.NC) * CELL + SW / 2, y: Math.floor(id / this.NC) * CELL + SW / 2 };
+        }
+
+        extremos(e) {
+            const a = e.r * this.NC + e.c;
+            return e.h ? [a, a + 1] : [a, a + this.NC];
+        }
+
+        entre(a, b) {
+            const NC = this.NC, r = Math.floor(a / NC), c = a % NC, d = b - a;
+            if (d === 1) return this.map.edgesH[r * COLS + c];
+            if (d === -1) return this.map.edgesH[r * COLS + c - 1];
+            if (d === NC) return this.map.edgesV[r * NC + c];
+            return this.map.edgesV[(r - 1) * NC + c];
+        }
+
+        // Costo de una cuadra según el perfil (segundos; px si el perfil es 'dist')
+        costo(e, perfil) {
+            if (perfil === 'dist') return CELL;
+            let t = CELL / (CONFIG.MOTO_MAX_SPEED * (e.traffic ? CONFIG.TRANCON_FACTOR : 1));
+            let reportados = 0;
+            for (const h of e.holes) if (h.reported) reportados++;
+            t += reportados * CONFIG.IA_PENAL_HUECO[perfil];
+            if (perfil === 'eco' && e.eco) t *= CONFIG.IA_ECO_FACTOR;
+            return t;
+        }
+
+        plan(px, py, dest, perfil) {
+            const m = this.map, NC = this.NC, META = this.N;
+            const u = perfil === 'dist' ? 1 : 1 / CONFIG.MOTO_MAX_SPEED;
+            const kH = perfil === 'dist' ? 1 : CONFIG.IA_ECO_FACTOR / CONFIG.MOTO_MAX_SPEED;
+            const S = { x: dest.sx, y: dest.sy };
+            const pe = m.edgeAt(px, py), de = dest.edge;
+
+            // Ya estamos en la cuadra del cliente: ruta directa
+            if (pe === de) return this.armar(perfil, px, py, [], dest);
+
+            const g = this.g.fill(Infinity), prev = this.prev.fill(-1), cerr = this.cerr.fill(0);
+            const open = [];
+            const sembrar = (id) => {
+                const p = this.pos(id);
+                g[id] = Math.hypot(p.x - px, p.y - py) * u;
+                open.push(id);
+            };
+            if (pe) {
+                const [a, b] = this.extremos(pe);
+                sembrar(a); sembrar(b);
+            } else {
+                const c = clamp(Math.round((px - SW / 2) / CELL), 0, COLS);
+                const r = clamp(Math.round((py - SW / 2) / CELL), 0, ROWS);
+                sembrar(r * NC + c);
+            }
+            const [ga, gb] = this.extremos(de);
+            const h = (id) => {
+                if (id === META) return 0;
+                const p = this.pos(id);
+                return (Math.abs(p.x - S.x) + Math.abs(p.y - S.y)) * kH;
+            };
+
+            while (open.length) {
+                let bi = 0, bf = Infinity;
+                for (let i = 0; i < open.length; i++) {
+                    const f = g[open[i]] + h(open[i]);
+                    if (f < bf) { bf = f; bi = i; }
+                }
+                const id = open[bi];
+                open[bi] = open[open.length - 1];
+                open.pop();
+                if (id === META) break;
+                if (cerr[id]) continue;
+                cerr[id] = 1;
+
+                const r = Math.floor(id / NC), c = id % NC;
+                const relajar = (nid, e) => {
+                    if (cerr[nid]) return;
+                    const ng = g[id] + this.costo(e, perfil);
+                    if (ng < g[nid]) { g[nid] = ng; prev[nid] = id; open.push(nid); }
+                };
+                if (c < COLS) relajar(id + 1, m.edgesH[r * COLS + c]);
+                if (c > 0) relajar(id - 1, m.edgesH[r * COLS + c - 1]);
+                if (r < ROWS) relajar(id + NC, m.edgesV[r * NC + c]);
+                if (r > 0) relajar(id - NC, m.edgesV[(r - 1) * NC + c]);
+                if (id === ga || id === gb) {
+                    const p = this.pos(id);
+                    const ng = g[id] + Math.hypot(p.x - S.x, p.y - S.y) * u;
+                    if (ng < g[META]) { g[META] = ng; prev[META] = id; open.push(META); }
+                }
+            }
+
+            const nodos = [];
+            for (let id = prev[META]; id >= 0; id = prev[id]) nodos.push(id);
+            nodos.reverse();
+            return this.armar(perfil, px, py, nodos, dest);
+        }
+
+        // Convierte la lista de nodos en una ruta con sus métricas
+        armar(perfil, px, py, nodos, dest) {
+            const V = CONFIG.MOTO_MAX_SPEED;
+            const points = [{ x: px, y: py }];
+            const edges = new Set([dest.edge]);
+            const uso = {};
+            let eta = 0, holes = 0, traffic = 0, ecoLen = 0;
+
+            for (let i = 0; i < nodos.length; i++) {
+                points.push(this.pos(nodos[i]));
+                if (i === 0) continue;
+                const e = this.entre(nodos[i - 1], nodos[i]);
+                edges.add(e);
+                eta += CELL / (V * (e.traffic ? CONFIG.TRANCON_FACTOR : 1));
+                for (const h of e.holes) if (h.reported) holes++;
+                if (e.traffic) traffic++;
+                if (e.eco) ecoLen += CELL;
+                const k = nombreVia(e);
+                uso[k] = (uso[k] || 0) + CELL;
+            }
+            points.push({ x: dest.sx, y: dest.sy }, { x: dest.x, y: dest.y });
+
+            let len = 0;
+            for (let i = 1; i < points.length; i++) len += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
+            eta += (len - Math.max(0, nodos.length - 1) * CELL) / V;
+
+            let calle = nombreVia(dest.edge), mejor = 0;
+            for (const k in uso) if (uso[k] > mejor) { mejor = uso[k]; calle = k; }
+
+            return { perfil, points, edges, len, eta, holes, traffic, ecoLen, calle, key: nodos.join(',') };
+        }
+    }
+
+    // Punto más cercano de una polilínea
+    function masCercano(pts, x, y) {
+        const out = { d: Infinity, seg: 0, x: pts[0].x, y: pts[0].y };
+        for (let i = 0; i < pts.length - 1; i++) {
+            const a = pts[i], b = pts[i + 1];
+            const dx = b.x - a.x, dy = b.y - a.y;
+            const l2 = dx * dx + dy * dy;
+            const t = l2 ? clamp(((x - a.x) * dx + (y - a.y) * dy) / l2, 0, 1) : 0;
+            const qx = a.x + dx * t, qy = a.y + dy * t;
+            const d = Math.hypot(x - qx, y - qy);
+            if (d < out.d) { out.d = d; out.seg = i; out.x = qx; out.y = qy; }
+        }
+        return out;
+    }
+
+    /* ==========================================================================
+       7. COPILOTO IA (3 PERFILES, EXPLICACIONES, RE-RUTEO Y REPORTES)
+       ========================================================================== */
+    class AICopilot {
+        constructor(game) {
+            this.game = game;
+            this.planner = new RoutePlanner(game.map);
+            this.rutas = [];
+            this.sel = 0;               // Perfil elegido (se conserva entre entregas)
+            this.cp = null;             // Punto de la ruta más cercano a la moto
+            this.reveal = 0;            // Largo de ruta ya dibujado (se dibuja progresivamente)
+            this.recalcT = 0;
+            this.enfriamiento = 0;
+            this.npcT = CONFIG.IA_REPORTE_NPC_CADA;
+            this.msg = '';
+            this.mostrado = 0;
+
+            $('copilot-rutas').onclick = (e) => {
+                const b = e.target.closest('.ruta-card');
+                if (b) { this.elegir(+b.dataset.i); b.blur(); }
+            };
+        }
+
+        get ruta() { return this.rutas[this.sel] || null; }
+
+        decir(txt) {
+            this.msg = txt;
+            this.mostrado = 0;
+        }
+
+        bonusEco(r) {
+            return Math.floor(r.ecoLen / CONFIG.PLUS_ECO_CADA) * CONFIG.PLUS_ECO;
+        }
+
+        planificar() {
+            const g = this.game, dest = g.destino();
+            $('copilot-icon').classList.remove('thinking');
+            if (!dest) { this.rutas = []; $('copilot-rutas').innerHTML = ''; return; }
+            this.rutas = PERFILES.map(p => this.planner.plan(g.player.x, g.player.y, dest, p.id));
+            this.reveal = 0;
+            this.cp = masCercano(this.ruta.points, g.player.x, g.player.y);
+            this.pintarTarjetas();
+            this.decir(this.explicar(this.sel));
+        }
+
+        elegir(i) {
+            if (!this.rutas[i] || this.game.state === 'PAUSE') return;
+            this.sel = i;
+            this.reveal = 0;
+            this.cp = masCercano(this.ruta.points, this.game.player.x, this.game.player.y);
+            this.pintarTarjetas();
+            this.decir(this.explicar(i));
+            sound.playBeep(520 + i * 120);
+        }
+
+        // Cada sugerencia trae su razón, en tono rolo
+        explicar(i) {
+            const r = this.rutas[i], rap = this.rutas[0];
+            const eta = Math.round(r.eta), extra = Math.max(0, Math.round(r.eta - rap.eta));
+            const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
+            if (i === 0) {
+                const ojo = [];
+                if (r.holes) ojo.push(plural(r.holes, 'hueco reportado', 'huecos reportados'));
+                if (r.traffic) ojo.push(plural(r.traffic, 'trancón', 'trancones'));
+                return ojo.length
+                    ? `Por ${r.calle} llega en ${eta} s. Ojo: ${ojo.join(' y ')} en el camino. ¡Pilas!`
+                    : `Por ${r.calle} llega en ${eta} s y va limpia. ¡Hágale sin miedo!`;
+            }
+            if (i === 1) {
+                if (r.key === rap.key) return 'La rápida ya va sanita, veci: es la misma ruta.';
+                const evito = [];
+                if (rap.holes > r.holes) evito.push(plural(rap.holes - r.holes, 'hueco', 'huecos'));
+                if (rap.traffic > r.traffic) evito.push(plural(rap.traffic - r.traffic, 'trancón', 'trancones'));
+                return `Evito ${evito.join(' y ') || 'el riesgo'} de ${rap.calle} y me voy por ${r.calle}. ` +
+                    (extra ? `Son ${extra} s más, pero la caja llega enterita.` : 'Y ni siquiera se demora más.');
+            }
+            if (!r.ecoLen) return `No hay ciclorruta que sirva pa' esta entrega: voy por ${r.calle}.`;
+            return `${Math.round(r.ecoLen / CONFIG.PX_POR_METRO)} m de ciclorruta por ${r.calle}: +${this.bonusEco(r)} Plus de bonus.` +
+                (extra ? ` Son ${extra} s más.` : '');
+        }
+
+        confianza(r) {
+            return clamp(Math.round(97 - r.traffic * 3 - r.holes * 2 - r.len / 1500), 55, 97);
+        }
+
+        pintarTarjetas() {
+            let html = '';
+            this.rutas.forEach((r, i) => {
+                const p = PERFILES[i];
+                let info = `${Math.round(r.eta)} s · 🕳️ ${r.holes}`;
+                if (r.traffic) info += ` · 🚗 ${r.traffic}`;
+                if (i === 2 && r.ecoLen) info += ` · +${this.bonusEco(r)} 🟡`;
+                html += `<button class="ruta-card interactive${i === this.sel ? ' sel' : ''}" data-i="${i}" tabindex="-1" style="--c:${p.color}">` +
+                    `<span class="ruta-nombre">${p.icono} ${p.nombre}</span><span class="ruta-info">${info}</span>` +
+                    `<span class="key-hint">${i + 1}</span></button>`;
+            });
+            $('copilot-rutas').innerHTML = html;
+            setText('copilot-conf', this.ruta ? `${this.confianza(this.ruta)}% seguro` : '--%');
+        }
+
+        pedirRecalculo(msg) {
+            if (this.recalcT > 0) return;
+            this.recalcT = 0.55;
+            this.decir(msg || 'Recalculando, veci…');
+            $('copilot-icon').classList.add('thinking');
+            sound.playRecalc();
+        }
+
+        // Marca un hueco como reportado y avisa si afecta la ruta actual
+        marcarReportado(hole, msg) {
+            hole.reported = true;
+            hole.pop = 1;
+            if (this.ruta && this.ruta.edges.has(hole.edge)) this.pedirRecalculo(`${msg} Recalculando, veci…`);
+            else { this.decir(msg); this.pintarConteos(); }
+        }
+
+        // Actualiza las cifras de las tarjetas sin cambiar la ruta
+        pintarConteos() {
+            const g = this.game, dest = g.destino();
+            if (!dest || this.recalcT > 0) return;
+            // Las rutas alternativas pueden haber cambiado con el reporte
+            const actual = this.ruta;
+            this.rutas = PERFILES.map((p, i) => i === this.sel ? actual : this.planner.plan(g.player.x, g.player.y, dest, p.id));
+            this.pintarTarjetas();
+        }
+
+        // Botón Reportar (E): el jugador avisa de un hueco cercano y gana Plus
+        reportar() {
+            const g = this.game, p = g.player;
+            let mejor = null, md = CONFIG.IA_REPORTE_RADIO;
+            for (const h of g.map.potholes) {
+                if (h.reported) continue;
+                const d = Math.hypot(h.x - p.x, h.y - p.y);
+                if (d < md) { md = d; mejor = h; }
+            }
+            if (!mejor) {
+                this.decir('No veo huecos sin reportar por aquí, veci.');
+                return;
+            }
+            g.sumarPlus(CONFIG.PLUS_REPORTE);
+            g.reportes++;
+            g.textos.spawn(mejor.x, mejor.y - 24, `Reportado +${CONFIG.PLUS_REPORTE}`, '#FFE600', 1.1);
+            sound.playReport();
+            this.marcarReportado(mejor, `¡Reporte enviado! +${CONFIG.PLUS_REPORTE} Plus, gracias veci.`);
+        }
+
+        update(dt) {
+            const g = this.game, p = g.player;
+
+            // Efecto máquina de escribir
+            if (this.mostrado < this.msg.length) {
+                this.mostrado = Math.min(this.msg.length, this.mostrado + 70 * dt);
+                setText('copilot-msg', this.msg.slice(0, Math.floor(this.mostrado)));
+            }
+
+            for (const h of g.map.potholes) if (h.pop > 0) h.pop = Math.max(0, h.pop - dt * 1.4);
+            if (g.state !== 'PLAY') return;
+
+            // Reportes de la comunidad: otro repartidor avisa de un hueco
+            this.npcT -= dt;
+            if (this.npcT <= 0) {
+                this.npcT = CONFIG.IA_REPORTE_NPC_CADA;
+                const ocultos = g.map.potholes.filter(h => !h.reported);
+                if (ocultos.length) {
+                    const h = ocultos[Math.floor(Math.random() * ocultos.length)];
+                    this.marcarReportado(h, `Un colega reportó un hueco en ${nombreVia(h.edge)}.`);
+                }
+            }
+
+            const r = this.ruta;
+            if (!r) return;
+            this.enfriamiento -= dt;
+
+            if (this.recalcT > 0) {
+                this.recalcT -= dt;
+                if (this.recalcT <= 0) { this.planificar(); this.enfriamiento = 2; }
+                return;
+            }
+
+            this.reveal += 2600 * dt;
+            this.cp = masCercano(r.points, p.x, p.y);
+            if (this.cp.d > CONFIG.IA_DESVIO_RECALCULO && this.enfriamiento <= 0) this.pedirRecalculo();
+        }
+
+        // Ruta sugerida: línea punteada que fluye hacia el destino
+        draw(ctx, t) {
+            const r = this.ruta, cp = this.cp;
+            if (!r || !cp) return;
+            const pts = r.points;
+            ctx.save();
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.globalAlpha = this.recalcT > 0 ? 0.22 : 0.85;   // La ruta vieja se desvanece
+            ctx.strokeStyle = PERFILES[this.sel].color;
+            ctx.lineWidth = 7;
+            ctx.setLineDash([16, 14]);
+            ctx.lineDashOffset = -t * 70;
+            ctx.beginPath();
+            ctx.moveTo(cp.x, cp.y);
+            let px = cp.x, py = cp.y, resto = this.reveal;
+            for (let i = cp.seg + 1; i < pts.length && resto > 0; i++) {
+                const q = pts[i], d = Math.hypot(q.x - px, q.y - py);
+                if (d <= resto) { ctx.lineTo(q.x, q.y); resto -= d; px = q.x; py = q.y; }
+                else { const k = resto / d; ctx.lineTo(px + (q.x - px) * k, py + (q.y - py) * k); resto = 0; }
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+
+    /* ==========================================================================
+       8. JUGADOR: MOTO ROLA (FÍSICA Y ANIMACIÓN)
        ========================================================================== */
     class MotoPlayer {
         constructor(x, y) {
-            this.x = x;
-            this.y = y;
-            this.vx = 0;
-            this.vy = 0;
-            this.angle = 0;
+            this.x = x; this.y = y;
+            this.px = x; this.py = y;       // Posición anterior (para interpolar el render)
+            this.angle = -Math.PI / 2;      // Arranca mirando al norte
+            this.pangle = this.angle;
             this.speed = 0;
 
             this.integrity = 100;
             this.battery = 100;
+            this.nitro = CONFIG.NITRO_INICIAL;
             this.isNitro = false;
+            this.nitroArranco = false;
+            this.frenando = false;
+            this.enTrancon = false;
+            this.invuln = 0;
+            this.recorrido = 0;             // Distancia real recorrida (para la eficiencia)
 
-            this.skidMarks = [];
+            // Animación
             this.bobTimer = 0;
+            this.lean = 0;                  // Inclinación en las curvas
+            this.squash = 0;                // Aplastamiento al caer en un hueco
+            this.stretch = 0;               // Estirón al arrancar el Nitro
+            this.marcas = [];
+            for (let i = 0; i < 48; i++) this.marcas.push({ x: 0, y: 0, a: 0 });
+            this.marcaIdx = 0;
         }
 
-        update(dt, keys, touchInput, map) {
-            // Controles combinados (Teclado + Touch)
-            let inputX = 0;
-            let inputY = 0;
+        update(dt, inp, map) {
+            this.px = this.x; this.py = this.y; this.pangle = this.angle;
 
-            if (keys['ArrowUp'] || keys['KeyW']) inputY -= 1;
-            if (keys['ArrowDown'] || keys['KeyS']) inputY += 1;
-            if (keys['ArrowLeft'] || keys['KeyA']) inputX -= 1;
-            if (keys['ArrowRight'] || keys['KeyD']) inputX += 1;
+            let steer = inp.steer, thr = inp.thr;
+            if (inp.touchDir !== null) steer = clamp(angDiff(inp.touchDir, this.angle) * 3, -1, 1);
 
-            if (touchInput.active) {
-                inputX = touchInput.x;
-                inputY = touchInput.y;
-            }
+            // Tinto Nitro: tiene su propia barra
+            const eraNitro = this.isNitro;
+            this.isNitro = inp.nitro && this.nitro > 0 && thr > 0;
+            this.nitroArranco = this.isNitro && !eraNitro;
+            if (this.nitroArranco) this.stretch = 1;
+            if (this.isNitro) this.nitro = Math.max(0, this.nitro - CONFIG.NITRO_GASTO * dt);
 
-            this.isNitro = (keys['Space'] || touchInput.nitro) && this.battery > 5;
-
-            // Aceleración y Velocidad Máxima
+            // Velocidad objetivo (el trancón obliga a filtrarse despacio)
+            const e = map.edgeAt(this.x, this.y);
+            this.enTrancon = !!(e && e.traffic);
             let maxSpd = this.isNitro ? CONFIG.MOTO_NITRO_SPEED : CONFIG.MOTO_MAX_SPEED;
-            let targetSpeed = 0;
+            if (this.enTrancon) maxSpd *= CONFIG.TRANCON_FACTOR;
+            let objetivo = 0;
+            if (thr > 0) objetivo = maxSpd * thr;
+            else if (thr < 0) objetivo = -CONFIG.MOTO_MAX_SPEED * CONFIG.MOTO_REVERSA;
+            this.frenando = (thr < 0 && this.speed > 20) || this.speed > objetivo + 60;
 
-            if (inputY < 0) targetSpeed = maxSpd;      // Adelante
-            else if (inputY > 0) targetSpeed = -maxSpd * 0.4; // Reversa
+            // Giro: necesita algo de velocidad
+            const agarre = clamp(Math.abs(this.speed) / 120, 0, 1);
+            this.angle += steer * CONFIG.MOTO_ROTATE_SPEED * dt * agarre * (this.speed >= 0 ? 1 : -1);
 
-            // Rotación
+            // Aceleración suavizada y fricción
+            if (thr !== 0) this.speed += (objetivo - this.speed) * CONFIG.MOTO_ACCEL_LERP * dt;
+            else this.speed *= CONFIG.MOTO_FRICTION;
+
+            // Movimiento y choque contra los andenes
+            this.x += Math.cos(this.angle) * this.speed * dt;
+            this.y += Math.sin(this.angle) * this.speed * dt;
+            if (map.resolver(this, CONFIG.MOTO_RADIO)) this.speed *= 0.93;
+            this.recorrido += Math.hypot(this.x - this.px, this.y - this.py);
+
+            // Batería
             if (Math.abs(this.speed) > 10) {
-                let dir = this.speed > 0 ? 1 : -1;
-                this.angle += inputX * CONFIG.MOTO_ROTATE_SPEED * dt * dir;
-            }
-
-            // Suavizado de aceleración (Física)
-            if (targetSpeed !== 0) {
-                this.speed += (targetSpeed - this.speed) * 4 * dt;
-            } else {
-                this.speed *= CONFIG.MOTO_FRICTION;
-            }
-
-            // Actualizar vector velocidad
-            this.vx = Math.cos(this.angle) * this.speed;
-            this.vy = Math.sin(this.angle) * this.speed;
-
-            // Mover posición
-            let nextX = this.x + this.vx * dt;
-            let nextY = this.y + this.vy * dt;
-
-            // Colisión simple con límites del mapa
-            this.x = Math.max(30, Math.min(map.width - 30, nextX));
-            this.y = Math.max(30, Math.min(map.height - 30, nextY));
-
-            // Consumo de Batería
-            if (Math.abs(this.speed) > 10) {
-                let mult = this.isNitro ? 3 : 1;
+                const mult = this.isNitro ? CONFIG.BATTERY_NITRO_MULT : 1;
                 this.battery = Math.max(0, this.battery - CONFIG.BATTERY_DRAIN_RATE * mult * dt);
             }
 
-            // Animación de rebote (Bobbing) y Derrape
-            if (Math.abs(this.speed) > 20) {
-                this.bobTimer += dt * 15;
-                if (Math.abs(inputX) > 0.6 && Math.abs(this.speed) > 150) {
-                    // Dejar marca de derrape
-                    this.skidMarks.push({ x: this.x, y: this.y, alpha: 0.6 });
-                    if (this.skidMarks.length > 40) this.skidMarks.shift();
-                }
-            }
+            // Animación: rebote, inclinación, squash & stretch
+            if (Math.abs(this.speed) > 20) this.bobTimer += dt * 15;
+            this.lean += (steer * agarre - this.lean) * Math.min(1, 10 * dt);
+            this.squash = Math.max(0, this.squash - dt * 5);
+            this.stretch = Math.max(0, this.stretch - dt * 3);
+            if (this.invuln > 0) this.invuln -= dt;
 
-            // Desvanecer marcas de derrape antiguas
-            for (let mark of this.skidMarks) {
-                mark.alpha -= dt * 0.3;
+            // Marcas de derrape (buffer circular, sin crear objetos)
+            if (Math.abs(steer) > 0.6 && Math.abs(this.speed) > 160) {
+                const m = this.marcas[this.marcaIdx];
+                m.x = this.x - Math.cos(this.angle) * 12;
+                m.y = this.y - Math.sin(this.angle) * 12;
+                m.a = 0.55;
+                this.marcaIdx = (this.marcaIdx + 1) % this.marcas.length;
             }
-            this.skidMarks = this.skidMarks.filter(m => m.alpha > 0);
+            for (const m of this.marcas) if (m.a > 0) m.a -= dt * 0.3;
         }
 
-        draw(ctx) {
-            // Renderizar Marcas de Derrape
-            for (let mark of this.skidMarks) {
-                ctx.save();
-                ctx.globalAlpha = mark.alpha;
-                ctx.fillStyle = '#111';
-                ctx.fillRect(mark.x - 3, mark.y - 3, 6, 6);
-                ctx.restore();
+        draw(ctx, alpha, t) {
+            ctx.fillStyle = '#111';
+            for (const m of this.marcas) {
+                if (m.a <= 0) continue;
+                ctx.globalAlpha = m.a;
+                ctx.fillRect(m.x - 3, m.y - 3, 6, 6);
             }
+            ctx.globalAlpha = 1;
+
+            const x = lerp(this.px, this.x, alpha), y = lerp(this.py, this.y, alpha);
+            const ang = this.pangle + angDiff(this.angle, this.pangle) * alpha;
 
             ctx.save();
-            ctx.translate(this.x, this.y);
-            ctx.rotate(this.angle);
+            ctx.translate(x, y);
+            ctx.rotate(ang);
+            if (this.invuln > 0 && Math.floor(this.invuln * 12) % 2) ctx.globalAlpha = 0.45;
 
-            // Sombra del vehículo
+            // Sombra
             ctx.fillStyle = 'rgba(0,0,0,0.3)';
             ctx.beginPath();
-            ctx.ellipse(2, 6, 18, 10, 0, 0, Math.PI * 2);
+            ctx.ellipse(2, 6, 18, 10, 0, 0, TAU);
             ctx.fill();
 
-            // Efecto Visual de Nitro (Fuego/Estela)
+            // Cono de luz del faro
+            ctx.fillStyle = 'rgba(255,255,210,0.10)';
+            ctx.beginPath();
+            ctx.moveTo(14, 0); ctx.lineTo(80, -24); ctx.lineTo(80, 24);
+            ctx.closePath();
+            ctx.fill();
+
+            // Squash (hueco) y stretch (arranque del Nitro)
+            ctx.scale(1 - 0.25 * this.squash + 0.2 * this.stretch, 1 + 0.25 * this.squash - 0.12 * this.stretch);
+
+            // Estela del Nitro
             if (this.isNitro) {
                 ctx.fillStyle = '#FFE600';
                 ctx.beginPath();
-                ctx.moveTo(-20, 0);
-                ctx.lineTo(-35 - Math.random() * 10, -6);
-                ctx.lineTo(-35 - Math.random() * 10, 6);
+                ctx.moveTo(-18, 0);
+                ctx.lineTo(-36 - Math.random() * 14, -6);
+                ctx.lineTo(-36 - Math.random() * 14, 6);
                 ctx.closePath();
                 ctx.fill();
             }
 
-            // Cuerpo de la Moto Rola
-            let bobY = Math.sin(this.bobTimer) * 1.5;
+            const bob = Math.sin(this.bobTimer) * 1.2;
+            const inc = this.lean * 3;       // La parte alta se corre hacia adentro de la curva
 
-            // Carrocería Azul #3483FA
+            // Ruedas
+            ctx.fillStyle = '#15181C';
+            ctx.beginPath();
+            ctx.roundRect(10, -2.5, 10, 5, 2);
+            ctx.roundRect(-20, -2.5, 10, 5, 2);
+            ctx.fill();
+
+            // Carrocería azul
             ctx.fillStyle = '#3483FA';
             ctx.beginPath();
-            ctx.roundRect(-14, -8 + bobY, 28, 16, 6);
+            ctx.roundRect(-14, -7 + bob + inc * 0.4, 28, 14, 6);
             ctx.fill();
 
-            // Casco Repartidor (Amarillo #FFE600)
+            // Luz de freno
+            if (this.frenando) {
+                ctx.fillStyle = '#F23D4F';
+                ctx.fillRect(-17, -5 + bob, 3, 10);
+            }
+
+            // Caja de cartón con cinta amarilla: se balancea y tiembla si está dañada
+            ctx.save();
+            const tiemble = this.integrity < 50 ? Math.sin(t * 40) * 0.08 : 0;
+            ctx.translate(-11, bob + inc);
+            ctx.rotate(Math.sin(this.bobTimer * 0.5) * 0.05 + tiemble);
+            ctx.fillStyle = '#C88A4B';
+            ctx.fillRect(-6, -7, 11, 14);
+            ctx.fillStyle = '#FFE600';
+            ctx.fillRect(-1.5, -7, 2.5, 14);
+            if (this.integrity < 50) {
+                ctx.strokeStyle = '#5A3A1A';
+                ctx.lineWidth = 1.2;
+                ctx.beginPath();
+                ctx.moveTo(-5, -5); ctx.lineTo(-1, -1); ctx.lineTo(-4, 2); ctx.lineTo(1, 6);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // Casco amarillo
             ctx.fillStyle = '#FFE600';
             ctx.beginPath();
-            ctx.arc(2, 0 + bobY, 7, 0, Math.PI * 2);
+            ctx.arc(3, bob + inc, 6.5, 0, TAU);
             ctx.fill();
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(6, -3 + bob + inc, 2.5, 6);
 
-            // Caja de Entregas en la Parrilla (Cartón con cinta)
-            ctx.fillStyle = '#C88A4B';
-            ctx.fillRect(-16, -7 + bobY, 10, 14);
-            ctx.fillStyle = '#FFE600'; // Cinta amarilla
-            ctx.fillRect(-12, -7 + bobY, 2, 14);
-
-            // Faros Delanteros (Luz)
+            // Faro
             ctx.fillStyle = '#FFF';
             ctx.beginPath();
-            ctx.arc(14, 0 + bobY, 3, 0, Math.PI * 2);
+            ctx.arc(14, bob, 3, 0, TAU);
             ctx.fill();
 
             ctx.restore();
@@ -1078,474 +1995,798 @@
     }
 
     /* ==========================================================================
-       6. CÁMARA 2.5D CON LOOK-AHEAD Y TRAUMA SCREEN SHAKE
+       9. CÁMARA (LOOK-AHEAD, ZOOM DINÁMICO Y SHAKE POR TRAUMA)
        ========================================================================== */
     class GameCamera {
         constructor() {
-            this.x = 0;
-            this.y = 0;
-            this.trauma = 0;
+            this.x = 0; this.y = 0;         // Centro de la vista en el mundo
+            this.px = 0; this.py = 0;
             this.zoom = 1;
+            this.trauma = 0;
         }
 
         addTrauma(amount) {
-            this.trauma = Math.min(1.0, this.trauma + amount);
+            this.trauma = Math.min(1, this.trauma + amount);
         }
 
-        update(dt, targetX, targetY, targetSpeed, isNitro, canvasWidth, canvasHeight) {
-            // Suavizado Lerp hacia el jugador + Look-ahead en dirección de movimiento
-            let lookAheadX = targetX + Math.cos(targetSpeed) * 40;
-            let lookAheadY = targetY + Math.sin(targetSpeed) * 40;
+        snap(x, y) {
+            this.x = this.px = x;
+            this.y = this.py = y;
+        }
 
-            this.x += (lookAheadX - canvasWidth / 2 - this.x) * 5 * dt;
-            this.y += (lookAheadY - canvasHeight / 2 - this.y) * 5 * dt;
-
-            // Zoom Dinámico con el Nitro
-            let targetZoom = isNitro ? 0.9 : 1.0;
-            this.zoom += (targetZoom - this.zoom) * 3 * dt;
-
-            // Shake basado en Trauma (decae con el tiempo)
-            if (this.trauma > 0) {
-                const shakeX = (Math.random() * 2 - 1) * (this.trauma * this.trauma) * 20;
-                const shakeY = (Math.random() * 2 - 1) * (this.trauma * this.trauma) * 20;
-                this.x += shakeX;
-                this.y += shakeY;
-                this.trauma = Math.max(0, this.trauma - CONFIG.SHAKE_DECAY * dt);
-            }
+        update(dt, p, zoomObjetivo) {
+            this.px = this.x; this.py = this.y;
+            // La cámara se adelanta hacia donde va la moto
+            const tx = p.x + Math.cos(p.angle) * p.speed * 0.3;
+            const ty = p.y + Math.sin(p.angle) * p.speed * 0.3;
+            const k = Math.min(1, 5 * dt);
+            this.x += (tx - this.x) * k;
+            this.y += (ty - this.y) * k;
+            this.zoom += (zoomObjetivo - this.zoom) * Math.min(1, 3 * dt);
+            this.trauma = Math.max(0, this.trauma - CONFIG.SHAKE_DECAY * dt);
         }
     }
 
     /* ==========================================================================
-       7. MÁQUINA DE ESTADOS Y CONTROLADOR PRINCIPAL DEL JUEGO
+       10. MOTOR: MÁQUINA DE ESTADOS Y CONTROLADOR DEL JUEGO
        ========================================================================== */
+    const ESTADOS_MODAL = { SPLASH: 'screen-splash', MENU: 'screen-menu', CONTROLS: 'screen-controls', PAUSE: 'screen-pause', SUMMARY: 'screen-summary' };
+
     class GameEngine {
         constructor() {
-            this.canvas = document.getElementById('gameCanvas');
+            this.canvas = $('gameCanvas');
             this.ctx = this.canvas.getContext('2d');
+            this.mini = $('minimap').getContext('2d');
+            this.miniBase = document.createElement('canvas');
+            this.miniBase.width = this.miniBase.height = 264;
 
-            this.state = 'SPLASH'; // SPLASH, MENU, CONTROLS, PLAY, PAUSE, SUMMARY
+            // SPLASH, MENU, CONTROLS, COUNTDOWN, PLAY, PAUSE, ENDING, SUMMARY
+            this.state = 'SPLASH';
+            this.seed = 0;
             this.map = null;
             this.player = null;
+            this.copilot = null;
             this.camera = new GameCamera();
             this.particles = new ParticlePool();
+            this.textos = new TextosFlotantes();
 
-            // Estado del Turno
-            this.timer = CONFIG.TURNO_TIEMPO_MAX;
-            this.deliveriesDone = 0;
-            this.plusCoins = 0;
-            this.potholesHit = 0;
-            this.currentDeliveryIndex = 0;
-
-            // Control de Entrada
             this.keys = {};
-            this.touchInput = { active: false, x: 0, y: 0, nitro: false };
-
-            // Hit-Stop
+            this.touch = { active: false, x: 0, y: 0, nitro: false };
             this.hitStopTimer = 0;
+            this.tiempo = 0;                // Reloj de animación
+            this.lanzamiento = null;        // Paquete volando hacia la puerta
+            this.resumenToken = 0;
+            this.guardado = this.cargar();
 
             this.initEvents();
             this.resizeCanvas();
             this.setupUI();
+            this.pintarRecord();
         }
 
+        /* ---------- Guardado (localStorage con respaldo en memoria) ---------- */
+        cargar() {
+            try {
+                return JSON.parse(localStorage.getItem('rutamax_v1')) || { mejor: null, plus: 0 };
+            } catch (e) {
+                return { mejor: null, plus: 0 };
+            }
+        }
+
+        guardar() {
+            try { localStorage.setItem('rutamax_v1', JSON.stringify(this.guardado)); } catch (e) { /* Sigue en memoria */ }
+        }
+
+        pintarRecord() {
+            const m = this.guardado.mejor;
+            $('menu-record').textContent = m
+                ? `Récord en Chapinero: ${'⭐'.repeat(m.estrellas)} ${this.mmss(m.tiempo)} · Plus acumulados: ${this.guardado.plus}`
+                : 'Aún no hay récord en Chapinero. ¡Estrénelo, veci!';
+        }
+
+        mmss(s) {
+            s = Math.max(0, Math.ceil(s));
+            return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+        }
+
+        /* ---------- Entrada ---------- */
         initEvents() {
             window.addEventListener('resize', () => this.resizeCanvas());
+            window.addEventListener('keydown', (e) => this.onKeyDown(e));
+            window.addEventListener('keyup', (e) => { this.keys[e.code] = false; });
+            window.addEventListener('pointerdown', () => sound.init());
 
-            // Teclado
-            window.addEventListener('keydown', (e) => {
-                sound.init();
-                this.keys[e.code] = true;
+            // Pausa automática si la pestaña pierde el foco
+            const autoPausa = () => {
+                this.keys = {};
+                if (this.state === 'PLAY') this.setState('PAUSE');
+            };
+            window.addEventListener('blur', autoPausa);
+            document.addEventListener('visibilitychange', () => { if (document.hidden) autoPausa(); });
 
-                // Accesos Rápidos por Tecla
-                if (e.code === 'KeyP' || e.code === 'Escape') {
-                    if (this.state === 'PLAY') this.setState('PAUSE');
-                    else if (this.state === 'PAUSE') this.setState('PLAY');
-                }
-                if (e.code === 'KeyR') {
-                    if (this.state === 'PLAY' || this.state === 'PAUSE' || this.state === 'SUMMARY') {
-                        this.restartTurn();
-                    }
-                }
-                if (e.code === 'Enter') {
-                    if (this.state === 'SPLASH') this.setState('MENU');
-                }
-            });
-
-            window.addEventListener('keyup', (e) => {
-                this.keys[e.code] = false;
-            });
-
-            // Controles Táctiles Mobile (Joystick Virtual)
-            const joyArea = document.getElementById('touch-joystick');
-            const joyStick = document.getElementById('touch-stick');
-            const btnNitro = document.getElementById('touch-nitro');
-
-            if ('ontouchstart' in window) {
-                document.getElementById('touch-controls').style.display = 'flex';
+            // Controles táctiles: joystick a la izquierda y Nitro a la derecha
+            const joyArea = $('touch-joystick'), joyStick = $('touch-stick'), btnNitro = $('touch-nitro');
+            if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                $('touch-controls').style.display = 'flex';
+                $('game-container').classList.add('touch');
             }
 
-            let joyRect;
-            const handleTouchMove = (e) => {
+            const moverJoystick = (e) => {
+                e.preventDefault();
                 sound.init();
-                if (!joyRect) joyRect = joyArea.getBoundingClientRect();
-                const touch = e.touches[0];
-                const centerX = joyRect.left + joyRect.width / 2;
-                const centerY = joyRect.top + joyRect.height / 2;
-
-                let dx = touch.clientX - centerX;
-                let dy = touch.clientY - centerY;
-                let dist = Math.hypot(dx, dy);
-                let maxDist = joyRect.width / 2;
-
-                if (dist > maxDist) {
-                    dx = (dx / dist) * maxDist;
-                    dy = (dy / dist) * maxDist;
-                }
-
+                const rect = joyArea.getBoundingClientRect();
+                const touch = e.targetTouches[0];
+                if (!touch) return;
+                let dx = touch.clientX - (rect.left + rect.width / 2);
+                let dy = touch.clientY - (rect.top + rect.height / 2);
+                const dist = Math.hypot(dx, dy), max = rect.width / 2;
+                if (dist > max) { dx = dx / dist * max; dy = dy / dist * max; }
                 joyStick.style.transform = `translate(${dx}px, ${dy}px)`;
-                this.touchInput.active = true;
-                this.touchInput.x = dx / maxDist;
-                this.touchInput.y = dy / maxDist;
+                this.touch.active = true;
+                this.touch.x = dx / max;
+                this.touch.y = dy / max;
             };
-
-            const resetTouch = () => {
-                joyStick.style.transform = `translate(0px, 0px)`;
-                this.touchInput.active = false;
-                this.touchInput.x = 0;
-                this.touchInput.y = 0;
+            const soltarJoystick = () => {
+                joyStick.style.transform = 'translate(0px, 0px)';
+                this.touch.active = false;
+                this.touch.x = this.touch.y = 0;
             };
+            joyArea.addEventListener('touchstart', moverJoystick, { passive: false });
+            joyArea.addEventListener('touchmove', moverJoystick, { passive: false });
+            joyArea.addEventListener('touchend', soltarJoystick);
+            joyArea.addEventListener('touchcancel', soltarJoystick);
 
-            joyArea.addEventListener('touchstart', handleTouchMove);
-            joyArea.addEventListener('touchmove', handleTouchMove);
-            joyArea.addEventListener('touchend', resetTouch);
+            btnNitro.addEventListener('touchstart', (e) => { e.preventDefault(); sound.init(); this.touch.nitro = true; }, { passive: false });
+            btnNitro.addEventListener('touchend', () => { this.touch.nitro = false; });
+            btnNitro.addEventListener('touchcancel', () => { this.touch.nitro = false; });
+        }
 
-            btnNitro.addEventListener('touchstart', () => { sound.init(); this.touchInput.nitro = true; });
-            btnNitro.addEventListener('touchend', () => { this.touchInput.nitro = false; });
+        onKeyDown(e) {
+            sound.init();
+            const code = e.code, st = this.state;
+            const enJuego = st === 'PLAY' || st === 'COUNTDOWN' || st === 'ENDING';
+            if (enJuego && (code.startsWith('Arrow') || code === 'Space')) e.preventDefault();
+            this.keys[code] = true;
+            if (e.repeat) return;
+
+            if (code === 'KeyP' || code === 'Escape') {
+                if (st === 'PLAY') this.setState('PAUSE');
+                else if (st === 'PAUSE') this.setState('PLAY');
+                else if (st === 'CONTROLS') this.setState('MENU');
+                return;
+            }
+            if (code === 'KeyR' && (st === 'PLAY' || st === 'PAUSE' || st === 'SUMMARY')) {
+                this.restartTurn();
+                return;
+            }
+            if (st === 'PLAY' || st === 'COUNTDOWN') {
+                const n = ['Digit1', 'Digit2', 'Digit3'].indexOf(code);
+                const np = ['Numpad1', 'Numpad2', 'Numpad3'].indexOf(code);
+                if (n >= 0 || np >= 0) this.copilot.elegir(Math.max(n, np));
+                else if (code === 'KeyE' && st === 'PLAY') this.copilot.reportar();
+                return;
+            }
+
+            // Menús: flechas para moverse y Enter para elegir
+            if (ESTADOS_MODAL[st]) {
+                const btns = Array.from(document.querySelectorAll('.modal-overlay.active .btn'));
+                if (!btns.length) return;
+                const i = btns.indexOf(document.activeElement);
+                if (code === 'ArrowDown' || code === 'ArrowRight' || code === 'KeyS') {
+                    e.preventDefault();
+                    btns[(i + 1) % btns.length].focus();
+                } else if (code === 'ArrowUp' || code === 'ArrowLeft' || code === 'KeyW') {
+                    e.preventDefault();
+                    btns[(i <= 0 ? btns.length : i) - 1].focus();
+                } else if ((code === 'Enter' || code === 'NumpadEnter') && i < 0) {
+                    e.preventDefault();
+                    btns[0].click();
+                }
+            }
+        }
+
+        leerInput() {
+            const k = this.keys, t = this.touch;
+            let steer = 0, thr = 0, touchDir = null;
+            if (k.ArrowUp || k.KeyW) thr += 1;
+            if (k.ArrowDown || k.KeyS) thr -= 1;
+            if (k.ArrowLeft || k.KeyA) steer -= 1;
+            if (k.ArrowRight || k.KeyD) steer += 1;
+            if (t.active) {
+                // En táctil la moto gira hacia donde apunta el joystick
+                const mag = Math.min(1, Math.hypot(t.x, t.y));
+                if (mag > 0.25) { touchDir = Math.atan2(t.y, t.x); thr = mag; }
+            }
+            return { steer, thr, touchDir, nitro: !!k.Space || t.nitro };
         }
 
         resizeCanvas() {
-            this.canvas.width = window.innerWidth * window.devicePixelRatio;
-            this.canvas.height = window.innerHeight * window.devicePixelRatio;
-            this.ctx.imageSmoothingEnabled = true;
+            const dpr = window.devicePixelRatio || 1;
+            this.canvas.width = Math.round(window.innerWidth * dpr);
+            this.canvas.height = Math.round(window.innerHeight * dpr);
         }
 
         setupUI() {
-            // Botones Menús
-            document.getElementById('btn-splash-start').onclick = () => this.setState('MENU');
-            document.getElementById('btn-menu-play').onclick = () => this.startTurn();
-            document.getElementById('btn-menu-controls').onclick = () => this.setState('CONTROLS');
-            document.getElementById('btn-controls-back').onclick = () => this.setState('MENU');
+            $('btn-splash-start').onclick = () => this.setState('MENU');
+            $('btn-menu-play').onclick = () => this.startTurn(true, true);
+            $('btn-menu-controls').onclick = () => this.setState('CONTROLS');
+            $('btn-controls-back').onclick = () => this.setState('MENU');
 
-            document.getElementById('btn-pause-hud').onclick = () => this.setState('PAUSE');
-            document.getElementById('btn-pause-resume').onclick = () => this.setState('PLAY');
-            document.getElementById('btn-pause-restart').onclick = () => this.restartTurn();
-            document.getElementById('btn-pause-quit').onclick = () => this.setState('MENU');
+            $('btn-pause-hud').onclick = () => { if (this.state === 'PLAY') this.setState('PAUSE'); };
+            $('btn-report-hud').onclick = (e) => { e.currentTarget.blur(); if (this.state === 'PLAY') this.copilot.reportar(); };
+            $('btn-pause-resume').onclick = () => this.setState('PLAY');
+            $('btn-pause-restart').onclick = () => this.restartTurn();
+            $('btn-pause-quit').onclick = () => this.setState('MENU');
 
-            document.getElementById('btn-summary-retry').onclick = () => this.restartTurn();
-            document.getElementById('btn-summary-menu').onclick = () => this.setState('MENU');
+            $('btn-summary-retry').onclick = () => this.restartTurn();
+            $('btn-summary-menu').onclick = () => this.setState('MENU');
+            this.setState('SPLASH');
         }
 
-        setState(newState) {
-            this.state = newState;
-
-            // Ocultar todas las pantallas modales
+        setState(nuevo) {
+            this.state = nuevo;
             document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
-            document.getElementById('hud').style.display = 'none';
+            if (ESTADOS_MODAL[nuevo]) $(ESTADOS_MODAL[nuevo]).classList.add('active');
 
-            // Activar la pantalla correspondiente
-            if (newState === 'SPLASH') document.getElementById('screen-splash').classList.add('active');
-            if (newState === 'MENU') document.getElementById('screen-menu').classList.add('active');
-            if (newState === 'CONTROLS') document.getElementById('screen-controls').classList.add('active');
-            if (newState === 'PAUSE') document.getElementById('screen-pause').classList.add('active');
-            if (newState === 'SUMMARY') document.getElementById('screen-summary').classList.add('active');
+            const enVivo = nuevo === 'PLAY' || nuevo === 'COUNTDOWN' || nuevo === 'ENDING';
+            $('hud').style.display = enVivo ? 'flex' : 'none';
+            $('countdown').style.display = nuevo === 'COUNTDOWN' ? 'block' : 'none';
+            if (nuevo === 'MENU') this.pintarRecord();
 
-            if (newState === 'PLAY') {
-                document.getElementById('hud').style.display = 'flex';
-            }
+            // El foco va al primer botón del menú (todo se juega con teclado)
+            const btn = document.querySelector('.modal-overlay.active .btn');
+            if (btn) btn.focus({ preventScroll: true });
+            else if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
         }
 
-        startTurn() {
-            this.map = new BogotaMap();
-            // Posicionar moto en la primera calle
-            let startPos = this.map.getRandomStreetPoint();
-            this.player = new MotoPlayer(startPos.x, startPos.y);
+        /* ---------- Turno ---------- */
+        startTurn(nuevoMapa, conCuenta) {
+            if (nuevoMapa || !this.seed) this.seed = Math.floor(Math.random() * 1e9) + 1;
+            this.map = new BogotaMap(this.seed);
+            this.player = new MotoPlayer(this.map.startX, this.map.startY);
+            this.camera.snap(this.player.x, this.player.y);
+            this.camera.trauma = 0;
+            this.particles = new ParticlePool();
+            this.textos = new TextosFlotantes();
 
             this.timer = CONFIG.TURNO_TIEMPO_MAX;
             this.deliveriesDone = 0;
             this.plusCoins = 0;
             this.potholesHit = 0;
+            this.casis = 0;
+            this.reportes = 0;
             this.currentDeliveryIndex = 0;
+            this.ecoAcum = 0;
+            this.optimo = 0;                // Suma de las rutas más cortas posibles
+            this.hitStopTimer = 0;
+            this.lanzamiento = null;
+            this.resumenToken++;
 
+            const sel = this.copilot ? this.copilot.sel : 0;
+            this.copilot = new AICopilot(this);
+            this.copilot.sel = sel;
+            this.prepararMinimapa();
+            this.nuevoTramo();
+
+            if (conCuenta) {
+                this.cdT = 0;
+                this.cdPaso = -1;
+                this.setState('COUNTDOWN');
+            } else {
+                this.setState('PLAY');
+            }
             this.updateHUD();
-            this.setState('PLAY');
         }
 
+        // Reintento instantáneo: mismo mapa, sin cuenta regresiva
         restartTurn() {
-            // Reinicio instantáneo en menos de 1 s
-            this.startTurn();
+            this.startTurn(false, false);
         }
 
-        update(dt) {
-            if (this.state !== 'PLAY') return;
+        destino() {
+            return this.map ? this.map.deliveries[this.currentDeliveryIndex] || null : null;
+        }
 
-            // Lógica Hit-Stop (Congelamiento por impacto)
-            if (this.hitStopTimer > 0) {
-                this.hitStopTimer -= dt * 1000;
+        // Empieza el tramo hacia la siguiente entrega
+        nuevoTramo() {
+            const d = this.destino();
+            if (d) this.optimo += this.copilot.planner.plan(this.player.x, this.player.y, d, 'dist').len;
+            this.copilot.planificar();
+        }
+
+        sumarPlus(n) {
+            this.plusCoins += n;
+            const el = $('hud-plus-badge');
+            el.classList.remove('bump');
+            void el.offsetWidth;            // Reinicia la animación
+            el.classList.add('bump');
+        }
+
+        zoomObjetivo() {
+            const base = clamp(Math.min(window.innerWidth, window.innerHeight) / 700, 0.62, 1);
+            const d = this.destino(), p = this.player;
+            if (p.isNitro) return base * 0.88;                                             // Se aleja con el Nitro
+            if (d && Math.hypot(d.x - p.x, d.y - p.y) < 240) return base * 1.12;           // Se acerca a la entrega
+            return base;
+        }
+
+        /* ---------- Simulación (timestep fijo) ---------- */
+        step(dt) {
+            const st = this.state;
+            this.tiempo += dt;
+
+            if (st === 'COUNTDOWN') {
+                this.cdT += dt;
+                const paso = Math.floor(this.cdT / 0.55);
+                if (paso !== this.cdPaso) {
+                    this.cdPaso = paso;
+                    if (paso >= 4) {
+                        this.setState('PLAY');
+                    } else {
+                        const el = $('countdown');
+                        el.textContent = ['3', '2', '1', '¡Arranque, veci!'][paso];
+                        el.classList.toggle('long', paso === 3);
+                        el.classList.remove('pop');
+                        void el.offsetWidth;
+                        el.classList.add('pop');
+                        sound.playBeep(paso < 3 ? 440 : 880);
+                    }
+                }
+                this.camera.update(dt, this.player, this.zoomObjetivo());
+                this.copilot.update(dt);
                 return;
             }
 
-            // Temporizador Global
-            const prevTimer = Math.ceil(this.timer);
-            this.timer = Math.max(0, this.timer - dt);
-            const currTimer = Math.ceil(this.timer);
-
-            if (currTimer <= 10 && currTimer !== prevTimer && currTimer > 0) {
-                sound.playTick();
+            if (st === 'ENDING') {
+                // Cámara lenta antes del resumen
+                this.endT -= dt;
+                const lento = dt * 0.25;
+                this.player.px = this.player.x; this.player.py = this.player.y; this.player.pangle = this.player.angle;
+                this.particles.update(lento);
+                this.textos.update(lento);
+                this.camera.update(lento, this.player, this.zoomObjetivo());
+                if (this.endT <= 0) this.mostrarResumen();
+                return;
             }
 
-            // Actualizar Moto Jugador
-            this.player.update(dt, this.keys, this.touchInput, this.map);
+            if (st !== 'PLAY') return;
 
-            // Generar partículas de polvo al conducir
-            if (Math.abs(this.player.speed) > 50) {
+            // Hit-stop: congelamiento breve al caer en un hueco
+            if (this.hitStopTimer > 0) {
+                this.hitStopTimer -= dt * 1000;
+                this.player.px = this.player.x; this.player.py = this.player.y; this.player.pangle = this.player.angle;
+                this.camera.px = this.camera.x; this.camera.py = this.camera.y;
+                return;
+            }
+
+            // Reloj del turno
+            const antes = Math.ceil(this.timer);
+            this.timer = Math.max(0, this.timer - dt);
+            const ahora = Math.ceil(this.timer);
+            if (ahora <= 10 && ahora !== antes && ahora > 0) sound.playTick();
+
+            const p = this.player, map = this.map;
+            p.update(dt, this.leerInput(), map);
+            if (p.nitroArranco) sound.playNitro();
+
+            // Polvo (o estela amarilla con Nitro)
+            if (Math.abs(p.speed) > 60 && Math.random() < 0.7 * MOTION) {
                 this.particles.spawn(
-                    this.player.x - Math.cos(this.player.angle) * 15,
-                    this.player.y - Math.sin(this.player.angle) * 15,
-                    (Math.random() - 0.5) * 20,
-                    (Math.random() - 0.5) * 20,
-                    Math.random() * 4 + 2,
-                    this.player.isNitro ? '#FFE600' : '#A0A0A0',
-                    0.4
+                    p.x - Math.cos(p.angle) * 15, p.y - Math.sin(p.angle) * 15,
+                    (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 30,
+                    Math.random() * 3 + 2, p.isNitro ? '#FFE600' : '#8D949C', 0.4
                 );
             }
 
-            // Actualizar Cámara con Trauma
-            this.camera.update(
-                dt,
-                this.player.x,
-                this.player.y,
-                this.player.angle,
-                this.player.isNitro,
-                this.canvas.width / window.devicePixelRatio,
-                this.canvas.height / window.devicePixelRatio
-            );
+            // Bonus de ciclorruta
+            const cuadra = map.edgeAt(p.x, p.y);
+            if (cuadra && cuadra.eco && Math.abs(p.speed) > 60) {
+                this.ecoAcum += Math.hypot(p.x - p.px, p.y - p.py);
+                if (this.ecoAcum >= CONFIG.PLUS_ECO_CADA) {
+                    this.ecoAcum -= CONFIG.PLUS_ECO_CADA;
+                    this.sumarPlus(CONFIG.PLUS_ECO);
+                    this.textos.spawn(p.x, p.y - 22, `🌱 +${CONFIG.PLUS_ECO}`, '#7CFFB2', 0.8, 14);
+                }
+            }
 
-            // Actualizar Partículas
+            this.revisarHuecos(dt);
+            this.revisarMonedas();
+            this.revisarEntrega();
+
+            this.copilot.update(dt);
+            this.camera.update(dt, p, this.zoomObjetivo());
             this.particles.update(dt);
+            this.textos.update(dt);
+            if (this.lanzamiento) {
+                this.lanzamiento.t += dt / 0.5;
+                if (this.lanzamiento.t >= 1) this.lanzamiento = null;
+            }
 
-            // === VERIFICAR COLISIONES E INTERACCIONES ===
+            // Victoria o derrota
+            if (this.deliveriesDone >= CONFIG.ENTREGAS_META) this.endTurn(true);
+            else if (this.timer <= 0 || p.integrity <= 0 || p.battery <= 0) this.endTurn(false);
+        }
 
-            // 1. Huecos
-            for (let hole of this.map.potholes) {
-                let dist = Math.hypot(this.player.x - hole.x, this.player.y - hole.y);
-                if (dist < hole.radius + 10) {
-                    // Daño y Hit-stop
-                    this.player.integrity = Math.max(0, this.player.integrity - CONFIG.POTHOLE_DAMAGE);
+        revisarHuecos(dt) {
+            const p = this.player, R = CONFIG.MOTO_RADIO;
+            for (const h of this.map.potholes) {
+                if (h.cool > 0) h.cool -= dt;
+                const d = Math.hypot(p.x - h.x, p.y - h.y);
+                if (d < h.r + R - 2) {
+                    if (p.invuln > 0) continue;
+                    // Caída: daño, frenada, hit-stop, shake y chispas
+                    p.integrity = Math.max(0, p.integrity - CONFIG.POTHOLE_DAMAGE);
+                    p.speed *= CONFIG.POTHOLE_FRENADA;
+                    p.squash = 1;
+                    p.invuln = CONFIG.INVULNERABLE;
+                    h.near = false;
+                    h.cool = 1.5;
                     this.potholesHit++;
                     this.camera.addTrauma(0.6);
                     this.hitStopTimer = CONFIG.HIT_STOP_DURATION;
                     sound.playHit();
-
-                    // Partículas de chispa / choque
-                    for (let i = 0; i < 12; i++) {
-                        this.particles.spawn(
-                            this.player.x, this.player.y,
-                            (Math.random() - 0.5) * 250, (Math.random() - 0.5) * 250,
-                            5, '#F23D4F', 0.5
-                        );
+                    this.particles.burst(p.x, p.y, 14, 260, 5, '#F23D4F', 0.5);
+                    this.textos.spawn(p.x, p.y - 26, `-${CONFIG.POTHOLE_DAMAGE}% 📦`, '#FF8A96', 1, 18);
+                    if (!h.reported) this.copilot.marcarReportado(h, '¡Uy! Ese hueco no estaba reportado. Ya lo marqué.');
+                } else if (d < h.r + R + 16) {
+                    if (h.cool <= 0 && Math.abs(p.speed) > 140) h.near = true;
+                } else if (h.near && d > h.r + R + 30) {
+                    // Near-miss: pasó rozando sin caer
+                    h.near = false;
+                    if (h.cool <= 0) {
+                        h.cool = 3;
+                        this.casis++;
+                        this.sumarPlus(CONFIG.PLUS_CASI);
+                        p.nitro = Math.min(100, p.nitro + CONFIG.NITRO_POR_CASI);
+                        this.textos.spawn(p.x, p.y - 26, '¡Uy, casi!', '#FFE600', 0.9, 18);
+                        sound.playNear();
                     }
-
-                    // Mover ligeramente fuera del hueco para no re-colisionar
-                    this.player.speed *= -0.3;
-                    this.player.x += Math.cos(this.player.angle) * -15;
-                    this.player.y += Math.sin(this.player.angle) * -15;
-                    break;
                 }
             }
+        }
 
-            // 2. Monedas Plus
-            for (let coin of this.map.coins) {
+        revisarMonedas() {
+            const p = this.player;
+            for (const coin of this.map.coins) {
                 if (!coin.active) continue;
-                let dist = Math.hypot(this.player.x - coin.x, this.player.y - coin.y);
-                if (dist < coin.radius + 15) {
+                if (Math.hypot(p.x - coin.x, p.y - coin.y) < coin.radius + 15) {
                     coin.active = false;
-                    this.plusCoins += 10;
+                    this.sumarPlus(CONFIG.PLUS_MONEDA);
+                    p.nitro = Math.min(100, p.nitro + CONFIG.NITRO_POR_MONEDA);
                     sound.playCoin();
-                    for (let i = 0; i < 8; i++) {
-                        this.particles.spawn(coin.x, coin.y, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100, 4, '#FFE600', 0.4);
-                    }
+                    this.particles.burst(coin.x, coin.y, 8, 110, 4, '#FFE600', 0.4);
+                    this.textos.spawn(coin.x, coin.y - 14, `+${CONFIG.PLUS_MONEDA}`, '#FFE600', 0.6, 13);
                 }
-            }
-
-            // 3. Entregas
-            let currentTarget = this.map.deliveries[this.currentDeliveryIndex];
-            if (currentTarget && !currentTarget.delivered) {
-                let dist = Math.hypot(this.player.x - currentTarget.x, this.player.y - currentTarget.y);
-                if (dist < 50) {
-                    currentTarget.delivered = true;
-                    this.deliveriesDone++;
-                    this.plusCoins += 50;
-                    sound.playDelivery();
-
-                    // Celebración de partículas
-                    for (let i = 0; i < 25; i++) {
-                        this.particles.spawn(currentTarget.x, currentTarget.y, (Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200, 6, '#00A650', 0.8);
-                    }
-
-                    // Pasar a la siguiente entrega
-                    this.currentDeliveryIndex++;
-                }
-            }
-
-            // Actualizar HUD
-            this.updateHUD();
-
-            // VERIFICAR CONDICIONES DE VICTORIA O DERROTA
-            if (this.deliveriesDone >= CONFIG.ENTREGAS_META) {
-                this.endTurn(true); // Gana
-            } else if (this.timer <= 0 || this.player.integrity <= 0 || this.player.battery <= 0) {
-                this.endTurn(false); // Pierde
             }
         }
 
+        revisarEntrega() {
+            const d = this.destino(), p = this.player;
+            if (!d || Math.hypot(p.x - d.x, p.y - d.y) > CONFIG.ENTREGA_RADIO) return;
+            d.delivered = true;
+            this.deliveriesDone++;
+            this.sumarPlus(CONFIG.PLUS_ENTREGA);
+            p.nitro = Math.min(100, p.nitro + CONFIG.NITRO_POR_ENTREGA);
+            sound.playDelivery();
+
+            // El paquete vuela en arco hasta la puerta, con confeti y frase del cliente
+            this.lanzamiento = { t: 0, x0: p.x, y0: p.y, x1: d.doorX, y1: d.doorY };
+            this.particles.burst(d.doorX, d.doorY, 28, 240, 5, ['#FFE600', '#3483FA', '#00A650', '#FFFFFF'], 0.9);
+            this.textos.spawn(d.doorX, d.doorY - 34, `+${CONFIG.PLUS_ENTREGA} Plus`, '#FFE600', 1.2, 20);
+            this.textos.spawn(d.doorX, d.doorY - 60, FRASES_CLIENTE[Math.floor(Math.random() * FRASES_CLIENTE.length)], '#FFFFFF', 2.2, 15);
+
+            this.currentDeliveryIndex++;
+            this.nuevoTramo();
+        }
+
+        /* ---------- HUD ---------- */
         updateHUD() {
-            document.getElementById('hud-deliveries').innerText = `${this.deliveriesDone} / ${CONFIG.ENTREGAS_META}`;
-            document.getElementById('hud-plus').innerText = this.plusCoins;
+            const p = this.player;
+            if (!p) return;
+            setText('hud-deliveries', `${this.deliveriesDone} / ${CONFIG.ENTREGAS_META}`);
+            setText('hud-plus', String(this.plusCoins));
 
-            // Formatear Tiempo (mm:ss)
-            const mins = Math.floor(this.timer / 60);
-            const secs = Math.floor(this.timer % 60);
-            const timeStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-            const timerEl = document.getElementById('hud-timer');
-            timerEl.innerText = timeStr;
+            const s = Math.ceil(this.timer);
+            setText('hud-timer', `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`);
+            $('hud-timer').classList.toggle('urgent', this.timer <= 10);
 
-            if (this.timer <= 10) timerEl.classList.add('urgent');
-            else timerEl.classList.remove('urgent');
+            const barra = (id, v) => {
+                const txt = `${Math.round(v)}%`;
+                if (_cacheTexto['lbl-' + id] !== txt) $('bar-' + id).style.width = txt;
+                setText('lbl-' + id, txt);
+            };
+            barra('integrity', p.integrity);
+            barra('battery', p.battery);
+            barra('nitro', p.nitro);
 
-            // Barras de Integridad y Batería
-            document.getElementById('bar-integrity').style.width = `${this.player.integrity}%`;
-            document.getElementById('lbl-integrity').innerText = `${Math.round(this.player.integrity)}%`;
-
-            document.getElementById('bar-battery').style.width = `${this.player.battery}%`;
-            document.getElementById('lbl-battery').innerText = `${Math.round(this.player.battery)}%`;
-
-            // Próxima Entrega
-            let target = this.map.deliveries[this.currentDeliveryIndex];
-            if (target) {
-                document.getElementById('target-address').innerText = target.address;
-                let dist = Math.round(Math.hypot(this.player.x - target.x, this.player.y - target.y));
-                document.getElementById('target-dist').innerText = `📍 Distancia: ${dist} m`;
+            const d = this.destino();
+            if (d) {
+                setText('target-address', `${d.address}, ${d.detalle}`);
+                const m = Math.round(Math.hypot(p.x - d.x, p.y - d.y) / CONFIG.PX_POR_METRO);
+                setText('target-dist', `📍 A ${m} m${p.enTrancon ? ' · 🚗 trancón' : ''}`);
             } else {
-                document.getElementById('target-address').innerText = "¡Todas entregadas!";
-                document.getElementById('target-dist').innerText = "Vuelve al punto de control";
+                setText('target-address', '¡Todas entregadas!');
+                setText('target-dist', 'Buen turno, veci');
             }
+            this.dibujarMinimapa();
         }
 
+        prepararMinimapa() {
+            const g = this.miniBase.getContext('2d');
+            const k = 264 / (GRID_W + CONFIG.CERROS_ANCHO);
+            this.miniK = k;
+            this.miniOy = (264 - GRID_H * k) / 2;
+            g.setTransform(1, 0, 0, 1, 0, 0);
+            g.fillStyle = '#1e242b';
+            g.fillRect(0, 0, 264, 264);
+            g.translate(0, this.miniOy);
+            g.scale(k, k);
+            g.fillStyle = '#3A4048';
+            g.fillRect(0, 0, GRID_W, GRID_H);
+            g.fillStyle = '#8B4A3A';
+            for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) g.fillRect(c * CELL + SW, r * CELL + SW, B, B);
+            for (const e of this.map.edges) {
+                if (!e.eco && !e.traffic) continue;
+                g.fillStyle = e.eco ? '#00A650' : '#F23D4F';
+                const a = puntoArista(e, 0, 0);
+                if (e.h) g.fillRect(a.x, a.y - 16, B, 32); else g.fillRect(a.x - 16, a.y, 32, B);
+            }
+            g.fillStyle = '#1B4D3E';
+            g.fillRect(GRID_W, 0, CONFIG.CERROS_ANCHO, GRID_H);
+        }
+
+        dibujarMinimapa() {
+            const g = this.mini, k = this.miniK, oy = this.miniOy, p = this.player;
+            g.setTransform(1, 0, 0, 1, 0, 0);
+            g.drawImage(this.miniBase, 0, 0);
+
+            // Ruta del Copiloto
+            const r = this.copilot.ruta;
+            if (r) {
+                g.strokeStyle = PERFILES[this.copilot.sel].color;
+                g.lineWidth = 3;
+                g.lineJoin = 'round';
+                g.beginPath();
+                r.points.forEach((q, i) => i ? g.lineTo(q.x * k, oy + q.y * k) : g.moveTo(q.x * k, oy + q.y * k));
+                g.stroke();
+            }
+
+            // Huecos reportados
+            g.fillStyle = '#FF8A96';
+            for (const h of this.map.potholes) if (h.reported) g.fillRect(h.x * k - 1.5, oy + h.y * k - 1.5, 3, 3);
+
+            // Destino (late) y moto
+            const d = this.destino();
+            if (d) {
+                g.fillStyle = '#3483FA';
+                g.strokeStyle = '#FFFFFF';
+                g.lineWidth = 2;
+                g.beginPath();
+                g.arc(d.x * k, oy + d.y * k, 6 + Math.sin(this.tiempo * 6) * 1.5, 0, TAU);
+                g.fill();
+                g.stroke();
+            }
+            g.save();
+            g.translate(p.x * k, oy + p.y * k);
+            g.rotate(p.angle);
+            g.fillStyle = '#FFE600';
+            g.strokeStyle = '#1A1A1A';
+            g.lineWidth = 1.5;
+            g.beginPath();
+            g.moveTo(9, 0); g.lineTo(-6, -6); g.lineTo(-6, 6);
+            g.closePath();
+            g.fill();
+            g.stroke();
+            g.restore();
+        }
+
+        /* ---------- Fin de turno y resumen ---------- */
         endTurn(won) {
+            this.won = won;
+            this.endT = 0.5;
+            if (won) sound.playWin(); else sound.playLose();
+            if (!won) this.camera.addTrauma(0.3);
+            this.setState('ENDING');
+        }
+
+        mostrarResumen() {
+            const p = this.player, won = this.won;
+            const usado = CONFIG.TURNO_TIEMPO_MAX - this.timer;
+            const eficiencia = p.recorrido > 0 ? Math.min(100, Math.round(this.optimo / p.recorrido * 100)) : 100;
+            const dano = 100 - Math.round(p.integrity);
+
+            // Estrellas: meta, poco daño y eficiencia frente a la IA
+            let estrellas = 0;
             if (won) {
-                sound.playWin();
-                document.getElementById('summary-title').innerText = "¡Turno Completado! 🎉";
-                document.getElementById('summary-subtitle').innerText = "Entregaste todos los paquetes a tiempo en Chapinero";
+                estrellas = 1;
+                if (dano < CONFIG.ESTRELLA_DANO_MAX) {
+                    estrellas = 2;
+                    if (eficiencia >= CONFIG.ESTRELLA_EFICIENCIA) estrellas = 3;
+                }
+            }
+
+            let titulo, sub, pista;
+            if (won) {
+                titulo = '¡Turno Completado! 🎉';
+                sub = 'Entregaste todos los paquetes a tiempo en Chapinero';
+                if (estrellas === 1) pista = `Para la 2.ª estrella: menos de ${CONFIG.ESTRELLA_DANO_MAX}% de daño (llevaste ${dano}%). Pruebe la ruta 🛡️ Segura.`;
+                else if (estrellas === 2) pista = `Te faltó ${CONFIG.ESTRELLA_EFICIENCIA - eficiencia}% de eficiencia para la 3.ª estrella. Siga la línea del Copiloto.`;
+                else pista = '¡Turno perfecto! Más pilo que el tráfico rolo.';
             } else {
-                sound.playLose();
-                document.getElementById('summary-title').innerText = "¡Turno Fallido! ❌";
-                let cause = "Se acabó el tiempo";
-                if (this.player.integrity <= 0) cause = "Los paquetes se destruyeron por los huecos";
-                else if (this.player.battery <= 0) cause = "Te quedaste sin batería en la moto";
-                document.getElementById('summary-subtitle').innerText = cause;
+                titulo = '¡Turno Fallido! ❌';
+                if (p.integrity <= 0) {
+                    sub = 'Los paquetes quedaron vueltos nada, parce';
+                    pista = 'Tip: la ruta 🛡️ Segura esquiva los huecos reportados (los del anillo rojo).';
+                } else if (p.battery <= 0) {
+                    sub = 'Se le acabó la batería a media cuadra, veci';
+                    pista = 'Tip: el Nitro gasta más batería. Guárdelo para las rectas limpias.';
+                } else {
+                    sub = `Se acabó el tiempo: ${this.deliveriesDone} de ${CONFIG.ENTREGAS_META} entregas`;
+                    pista = 'Tip: la ruta ⚡ Rápida y el Tinto Nitro ahorran segundos. Ojo con los trancones.';
+                }
+            }
+            $('summary-title').textContent = titulo;
+            $('summary-subtitle').textContent = sub;
+            $('summary-hint').textContent = pista;
+
+            $('stat-time').textContent = this.mmss(usado);
+            $('stat-plus').textContent = `+${this.plusCoins}`;
+            $('stat-integrity').textContent = `${Math.round(p.integrity)}%`;
+            $('stat-potholes').textContent = this.potholesHit;
+            $('stat-eff').textContent = won ? `${eficiencia}%` : '--';
+            $('stat-near').textContent = this.casis;
+
+            // Las estrellas aparecen una por una
+            const token = ++this.resumenToken;
+            for (let i = 1; i <= 3; i++) {
+                $('star-' + i).className = 'star';
+                if (i <= estrellas) {
+                    setTimeout(() => {
+                        if (token !== this.resumenToken) return;
+                        $('star-' + i).className = 'star active';
+                        sound.playBeep(600 + i * 150);
+                    }, 250 + i * 280);
+                }
             }
 
-            // Calcular Estrellas (1 a 3)
-            let stars = 0;
-            if (won) {
-                stars = 1;
-                if (this.player.integrity >= 80) stars++;
-                if (this.timer >= 30) stars++;
+            // Récord personal y Plus acumulados
+            this.guardado.plus += this.plusCoins;
+            const m = this.guardado.mejor;
+            if (won && (!m || estrellas > m.estrellas || (estrellas === m.estrellas && usado < m.tiempo))) {
+                this.guardado.mejor = { estrellas, tiempo: usado };
+                $('summary-subtitle').textContent = sub + ' · ¡Nuevo récord! 🏆';
             }
-
-            document.getElementById('star-1').className = stars >= 1 ? 'star active' : 'star';
-            document.getElementById('star-2').className = stars >= 2 ? 'star active' : 'star';
-            document.getElementById('star-3').className = stars >= 3 ? 'star active' : 'star';
-
-            // Llenar Estadísticas
-            const timeUsed = CONFIG.TURNO_TIEMPO_MAX - Math.ceil(this.timer);
-            const m = Math.floor(timeUsed / 60);
-            const s = timeUsed % 60;
-            document.getElementById('stat-time').innerText = `${m}:${s.toString().padStart(2, '0')}`;
-            document.getElementById('stat-plus').innerText = `+${this.plusCoins}`;
-            document.getElementById('stat-integrity').innerText = `${Math.round(this.player.integrity)}%`;
-            document.getElementById('stat-potholes').innerText = this.potholesHit;
-
+            this.guardar();
             this.setState('SUMMARY');
         }
 
-        render() {
-            // Limpiar Pantalla
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        /* ---------- Render ---------- */
+        render(alpha) {
+            const ctx = this.ctx, dpr = window.devicePixelRatio || 1;
+            const W = this.canvas.width / dpr, H = this.canvas.height / dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.fillStyle = '#1e242b';
+            ctx.fillRect(0, 0, W, H);
+            if (!this.map || this.state === 'SPLASH' || this.state === 'MENU' || this.state === 'CONTROLS') return;
 
-            if (this.state === 'PLAY' || this.state === 'PAUSE' || this.state === 'SUMMARY') {
-                const scale = window.devicePixelRatio;
-                this.ctx.save();
-                this.ctx.scale(scale * this.camera.zoom, scale * this.camera.zoom);
-                this.ctx.translate(-this.camera.x, -this.camera.y);
+            const enVivo = this.state === 'PLAY' || this.state === 'COUNTDOWN' || this.state === 'ENDING';
+            if (!enVivo) alpha = 1;
+            const cam = this.camera, z = cam.zoom, t = this.tiempo;
+            const temblor = cam.trauma * cam.trauma * CONFIG.SHAKE_MAX * MOTION;
+            const cx = lerp(cam.px, cam.x, alpha) + (Math.random() * 2 - 1) * temblor;
+            const cy = lerp(cam.py, cam.y, alpha) + (Math.random() * 2 - 1) * temblor;
 
-                // 1. Mapa Base Chapinero
-                this.map.draw(this.ctx);
+            ctx.save();
+            ctx.translate(W / 2, H / 2);
+            ctx.scale(z, z);
+            ctx.translate(-cx, -cy);
 
-                // 2. Destino Actual (Pin / Anillo Pulsante de Entrega)
-                let target = this.map.deliveries[this.currentDeliveryIndex];
-                if (target && !target.delivered) {
-                    const pulse = Math.sin(Date.now() * 0.008) * 8;
-                    this.ctx.save();
-                    this.ctx.strokeStyle = '#3483FA';
-                    this.ctx.lineWidth = 4;
-                    this.ctx.beginPath();
-                    this.ctx.arc(target.x, target.y, 35 + pulse, 0, Math.PI * 2);
-                    this.ctx.stroke();
+            const vista = { x0: cx - W / 2 / z - 20, y0: cy - H / 2 / z - 20, x1: cx + W / 2 / z + 20, y1: cy + H / 2 / z + 20 };
+            this.map.draw(ctx, vista, t);
+            this.copilot.draw(ctx, t);
+            this.dibujarDestino(ctx, t);
+            this.player.draw(ctx, alpha, t);
+            this.dibujarLanzamiento(ctx);
+            this.particles.draw(ctx);
+            this.textos.draw(ctx);
+            ctx.restore();
 
-                    // Pin Icon
-                    this.ctx.fillStyle = '#3483FA';
-                    this.ctx.beginPath();
-                    this.ctx.arc(target.x, target.y, 14, 0, Math.PI * 2);
-                    this.ctx.fill();
-                    this.ctx.fillStyle = '#FFF';
-                    this.ctx.font = 'bold 12px sans-serif';
-                    this.ctx.textAlign = 'center';
-                    this.ctx.textBaseline = 'middle';
-                    this.ctx.fillText(`📦 ${target.id}`, target.x, target.y);
-                    this.ctx.restore();
-                }
+            if (enVivo) this.updateHUD();
+        }
 
-                // 3. Jugador (Moto)
-                this.player.draw(this.ctx);
+        dibujarDestino(ctx, t) {
+            const d = this.destino(), p = this.player;
+            if (!d) return;
+            const pulso = Math.sin(t * 8) * 6;
 
-                // 4. Partículas
-                this.particles.draw(this.ctx);
+            // Zona de entrega sobre el asfalto
+            ctx.strokeStyle = '#3483FA';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, CONFIG.ENTREGA_RADIO - 6 + pulso, 0, TAU);
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(52,131,250,0.18)';
+            ctx.fill();
 
-                this.ctx.restore();
+            // Pin que rebota sobre la puerta
+            const salto = Math.abs(Math.sin(t * 5)) * 8;
+            const bx = d.doorX + (d.doorX - d.x) * 0.9, by = d.doorY + (d.doorY - d.y) * 0.9 - salto;
+            ctx.fillStyle = '#3483FA';
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(bx, by, 15, 0, TAU);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(d.id), bx, by + 1);
+
+            // Flecha guía alrededor de la moto cuando el destino está lejos
+            const dist = Math.hypot(d.x - p.x, d.y - p.y);
+            if (dist > 200) {
+                const a = Math.atan2(d.y - p.y, d.x - p.x);
+                ctx.save();
+                ctx.translate(p.x + Math.cos(a) * 52, p.y + Math.sin(a) * 52);
+                ctx.rotate(a);
+                ctx.globalAlpha = 0.7 + 0.3 * Math.sin(t * 6);
+                ctx.fillStyle = '#3483FA';
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(12, 0); ctx.lineTo(-6, -9); ctx.lineTo(-2, 0); ctx.lineTo(-6, 9);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
             }
+        }
+
+        dibujarLanzamiento(ctx) {
+            const l = this.lanzamiento;
+            if (!l) return;
+            const k = 1 - (1 - l.t) * (1 - l.t);            // easeOutQuad
+            const arco = Math.sin(l.t * Math.PI);
+            const x = lerp(l.x0, l.x1, k), y = lerp(l.y0, l.y1, k) - arco * 34;
+            const s = 1 + arco * 0.6;
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(l.t * 5);
+            ctx.scale(s, s);
+            ctx.fillStyle = '#C88A4B';
+            ctx.fillRect(-6, -6, 12, 12);
+            ctx.fillStyle = '#FFE600';
+            ctx.fillRect(-1.5, -6, 3, 12);
+            ctx.restore();
         }
     }
 
     /* ==========================================================================
-       8. LOOP PRINCIPAL DE INICIALIZACIÓN
+       11. LOOP PRINCIPAL (UPDATE A 60 HZ + RENDER INTERPOLADO)
        ========================================================================== */
     window.onload = () => {
         const game = new GameEngine();
-        let lastTime = performance.now();
+        window.rutamax = game;              // Útil para depurar desde la consola
+        let last = performance.now();
+        let acumulado = 0;
 
-        function gameLoop(now) {
-            let dt = (now - lastTime) / 1000;
-            if (dt > 0.1) dt = 0.1; // Prevenir dt gigante por cambio de pestaña
-            lastTime = now;
+        function loop(now) {
+            let dt = (now - last) / 1000;
+            if (dt > 0.1) dt = 0.1;         // Evita saltos gigantes al volver a la pestaña
+            last = now;
 
-            game.update(dt);
-            game.render();
-
-            requestAnimationFrame(gameLoop);
+            acumulado += dt;
+            while (acumulado >= CONFIG.PASO) {
+                game.step(CONFIG.PASO);
+                acumulado -= CONFIG.PASO;
+            }
+            game.render(acumulado / CONFIG.PASO);
+            requestAnimationFrame(loop);
         }
 
-        requestAnimationFrame(gameLoop);
+        requestAnimationFrame(loop);
     };
     </script>
 </body>
