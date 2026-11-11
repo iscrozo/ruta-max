@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RutaMax Bogotá: Entregas a Tiempo</title>
+    <style>
+        /* === ESTILOS BASE Y REINICIO === */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #12161A;
+            font-family: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, -apple-system, sans-serif;
+            color: #1A1A1A;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #1e242b;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        /* === CAPA SUPERPUESTA DE INTERFAZ (UI) === */
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 16px;
+            z-index: 10;
+        }
+
+        .interactive {
+            pointer-events: auto;
+        }
+
+        /* BANNER Y TARJETAS UI */
+        .card {
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            border: 2px solid #EDEDED;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .hud-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        .hud-badge {
+            background: #FFE600;
+            color: #1A1A1A;
+            font-weight: 800;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .hud-timer {
+            background: #1A1A1A;
+            color: #FFFFFF;
+            font-family: monospace;
+            font-size: 24px;
+            font-weight: 900;
+            padding: 8px 18px;
+            border-radius: 12px;
+            border: 2px solid #3483FA;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .hud-timer.urgent {
+            background: #F23D4F;
+            border-color: #FFE600;
+            animation: pulseTimer 0.5s infinite alternate;
+        }
+
+        @keyframes pulseTimer {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.08); }
+        }
+
+        /* BARRA DE ESTADO DEL PAQUETE Y BATERÍA */
+        .status-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 160px;
+        }
+
+        .bar-container {
+            height: 10px;
+            background: #EDEDED;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 100%;
+            border-radius: 5px;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+
+        .bar-fill.integrity { background: #00A650; }
+        .bar-fill.battery { background: #3483FA; }
+
+        /* NOTIFICACIONES Y DESTINO */
+        .target-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border-left: 6px solid #3483FA;
+            border-radius: 12px;
+            padding: 12px 16px;
+            max-width: 320px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+
+        .target-address {
+            font-size: 16px;
+            font-weight: 800;
+            color: #1A1A1A;
+        }
+
+        .target-dist {
+            font-size: 13px;
+            color: #666;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        /* MENÚS Y PANTALLAS COMPLETAS */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(18, 22, 26, 0.85);
+            backdrop-filter: blur(6px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .menu-box {
+            background: #FFFFFF;
+            width: 90%;
+            max-width: 440px;
+            border-radius: 24px;
+            padding: 32px 28px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            border: 3px solid #FFE600;
+            transform: translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-overlay.active .menu-box {
+            transform: translateY(0);
+        }
+
+        .brand-title {
+            font-size: 32px;
+            font-weight: 900;
+            color: #1A1A1A;
+            line-height: 1.1;
+            margin-bottom: 6px;
+        }
+        .brand-title span { color: #3483FA; }
+        .brand-subtitle {
+            font-size: 14px;
+            color: #666;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            background: #3483FA;
+            color: #FFFFFF;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: all 0.15s ease;
+            box-shadow: 0 4px 12px rgba(52, 131, 250, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            background: #2968c8;
+            box-shadow: 0 6px 16px rgba(52, 131, 250, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-yellow {
+            background: #FFE600;
+            color: #1A1A1A;
+            box-shadow: 0 4px 12px rgba(255, 230, 0, 0.4);
+        }
+
+        .btn-yellow:hover {
+            background: #e6ce00;
+        }
+
+        .btn-secondary {
+            background: #EDEDED;
+            color: #333;
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        /* CONTROLES TÁCTILES */
+        .touch-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            padding: 0 20px;
+            display: none;
+            justify-content: space-between;
+            align-items: flex-end;
+            pointer-events: none;
+            z-index: 12;
+        }
+
+        .touch-joystick-area {
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 60px;
+            position: relative;
+            pointer-events: auto;
+        }
+
+        .touch-stick {
+            width: 50px;
+            height: 50px;
+            background: #FFE600;
+            border-radius: 25px;
+            position: absolute;
+            top: 35px;
+            left: 35px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .touch-btn-nitro {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #FFE600, #ffaa00);
+            border-radius: 40px;
+            color: #1A1A1A;
+            font-weight: 900;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+            pointer-events: auto;
+            border: 3px solid #FFF;
+        }
+        .touch-btn-nitro:active {
+            transform: scale(0.92);
+        }
+
+        /* ESTRELLAS Y ESTADÍSTICAS DEL RESUMEN */
+        .stars-row {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 16px 0;
+            font-size: 36px;
+        }
+
+        .star {
+            color: #DDD;
+            transition: color 0.4s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .star.active {
+            color: #FFE600;
+            transform: scale(1.15);
+            text-shadow: 0 2px 10px rgba(255,230,0,0.5);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #F8F9FA;
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        .stat-item {
+            text-align: left;
+        }
+        .stat-label { font-size: 12px; color: #777; font-weight: 600; }
+        .stat-val { font-size: 18px; color: #1A1A1A; font-weight: 800; }
+
+        /* TECLAS DENTRO DE MENÚS */
+        .key-hint {
+            display: inline-block;
+            background: #EDEDED;
+            border: 1px solid #CCC;
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-family: monospace;
+            font-weight: 700;
+            font-size: 12px;
+            box-shadow: 0 2px 0 #CCC;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- CANVAS PRINCIPAL -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- HUD DEL JUEGO (EN PARTIDA) -->
+        <div id="hud" class="ui-layer" style="display: none;">
+            <div class="hud-top">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div class="hud-badge">
+                        <span>📦 Entregas:</span>
+                        <span id="hud-deliveries" style="font-size: 16px;">0 / 5</span>
+                    </div>
+                    <div class="hud-badge" style="background: #FFF; border: 1px solid #EDEDED;">
+                        <span>🟡 Plus:</span>
+                        <span id="hud-plus" style="color: #3483FA;">0</span>
+                    </div>
+                </div>
+
+                <div class="hud-timer" id="hud-timer">03:00</div>
+
+                <div class="card" style="padding: 10px 14px; background: rgba(255,255,255,0.95);">
+                    <div class="status-bars">
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700;">
+                            <span>📦 Estado</span>
+                            <span id="lbl-integrity">100%</span>
+                        </div>
+                        <div class="bar-container">
+                            <div id="bar-integrity" class="bar-fill integrity"></div>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-top: 2px;">
+                            <span>⚡ Batería</span>
+                            <span id="lbl-battery">100%</span>
+                        </div>
+                        <div class="bar-container">
+                            <div id="bar-battery" class="bar-fill battery"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TARJETA DE DESTINO INFERIOR -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
+                <div class="target-card">
+                    <div style="font-size: 11px; font-weight: 800; color: #3483FA; text-transform: uppercase;">Próxima Entrega</div>
+                    <div class="target-address" id="target-address">Calle 72 # 10-34</div>
+                    <div class="target-dist" id="target-dist">📍 Distancia: -- m</div>
+                </div>
+                <div class="interactive">
+                    <button class="btn btn-secondary" style="width: auto; padding: 10px 16px; margin: 0;" id="btn-pause-hud">⏸ Pausa [P]</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTROLES TÁCTILES MOBILE -->
+        <div id="touch-controls" class="touch-controls">
+            <div id="touch-joystick" class="touch-joystick-area">
+                <div id="touch-stick" class="touch-stick"></div>
+            </div>
+            <div id="touch-nitro" class="touch-btn-nitro">NITRO</div>
+        </div>
+
+        <!-- MÁQUINA DE ESTADOS: MODALES Y PANTALLAS -->
+
+        <!-- 1. SPLASH / INICIO -->
+        <div id="screen-splash" class="modal-overlay active">
+            <div class="menu-box">
+                <div class="brand-title">RutaMax <span>Bogotá</span></div>
+                <div class="brand-subtitle">Entregas a Tiempo — Fase 1</div>
+                <div style="font-size: 48px; margin: 20px 0;">🛵📦</div>
+                <p style="font-size: 14px; color: #555; margin-bottom: 24px;">
+                    Entrega 5 paquetes en <b>Chapinero</b> antes de que el reloj marque 0. ¡Cuidado con los huecos de la ciudad!
+                </p>
+                <button class="btn btn-yellow interactive" id="btn-splash-start">¡ARRANCAR VECI! [Enter]</button>
+            </div>
+        </div>
+
+        <!-- 2. MENÚ PRINCIPAL -->
+        <div id="screen-menu" class="modal-overlay">
+            <div class="menu-box">
+                <div class="brand-title">RutaMax <span>Bogotá</span></div>
+                <div class="brand-subtitle">Menú Principal</div>
+                <button class="btn btn-yellow interactive" id="btn-menu-play">▶ Jugar Turno Chapinero</button>
+                <button class="btn btn-secondary interactive" id="btn-menu-controls">🎮 Controles</button>
+                <div style="font-size: 12px; color: #888; margin-top: 16px;">Fase 1 — Moto Rola v1.0</div>
+            </div>
+        </div>
+
+        <!-- 3. CONTROLES / AYUDA -->
+        <div id="screen-controls" class="modal-overlay">
+            <div class="menu-box" style="text-align: left;">
+                <h3 style="margin-bottom: 16px; font-size: 20px;">🎮 Controles de Conducción</h3>
+                <p style="margin-bottom: 8px; font-size: 14px;"><span class="key-hint">Flechas</span> / <span class="key-hint">WASD</span> : Acelerar, Frenar, Girar</p>
+                <p style="margin-bottom: 8px; font-size: 14px;"><span class="key-hint">Espacio</span> : Tinto Nitro ⚡</p>
+                <p style="margin-bottom: 8px; font-size: 14px;"><span class="key-hint">P</span> / <span class="key-hint">Esc</span> : Pausa</p>
+                <p style="margin-bottom: 16px; font-size: 14px;"><span class="key-hint">R</span> : Reinicio Instantáneo</p>
+                <button class="btn btn-secondary interactive" id="btn-controls-back">Volver</button>
+            </div>
+        </div>
+
+        <!-- 4. PAUSA -->
+        <div id="screen-pause" class="modal-overlay">
+            <div class="menu-box">
+                <h2 style="font-size: 26px; margin-bottom: 8px;">Turno Pausado ⏸</h2>
+                <p style="font-size: 14px; color: #666; margin-bottom: 20px;">¿Tomando un tintico veci?</p>
+                <button class="btn btn-yellow interactive" id="btn-pause-resume">Continuar [P]</button>
+                <button class="btn btn-secondary interactive" id="btn-pause-restart">Reiniciar Turno [R]</button>
+                <button class="btn btn-secondary interactive" id="btn-pause-quit">Salir al Menú</button>
+            </div>
+        </div>
+
+        <!-- 5. RESUMEN / GAME OVER -->
+        <div id="screen-summary" class="modal-overlay">
+            <div class="menu-box">
+                <h2 id="summary-title" style="font-size: 26px; margin-bottom: 4px;">¡Turno Logrado! 🎉</h2>
+                <div id="summary-subtitle" style="font-size: 14px; color: #666; margin-bottom: 12px;">Entregas completadas a tiempo</div>
+
+                <div class="stars-row">
+                    <span class="star" id="star-1">★</span>
+                    <span class="star" id="star-2">★</span>
+                    <span class="star" id="star-3">★</span>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Tiempo Usado</div>
+                        <div class="stat-val" id="stat-time">01:45</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Monedas Plus</div>
+                        <div class="stat-val" id="stat-plus" style="color: #3483FA;">+150</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Estado Paquete</div>
+                        <div class="stat-val" id="stat-integrity">92%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Huecos Caídos</div>
+                        <div class="stat-val" id="stat-potholes">1</div>
+                    </div>
+                </div>
+
+                <button class="btn btn-yellow interactive" id="btn-summary-retry">Reintentar Ahora [R]</button>
+                <button class="btn btn-secondary interactive" id="btn-summary-menu">Menú Principal</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- === CÓDIGO DEL JUEGO (SINGLE FILE COMPLETE) === -->
+    <script>
+    /* ==========================================================================
+       1. CONFIGURACIÓN Y CONSTANTES GLOBAL (BALANCE DE JUEGO)
+       ========================================================================== */
+    const CONFIG = {
+        // Turno
+        TURNO_TIEMPO_MAX: 180,       // 180 segundos por turno
+        ENTREGAS_META: 5,           // Meta de entregas en Chapinero
+
+        // Mapa y Grilla Bogotana
+        GRID_COLS: 14,
+        GRID_ROWS: 14,
+        BLOCK_SIZE: 220,            // Tamaño en píxeles de cada manzana
+        STREET_WIDTH: 80,           // Ancho de la calle en píxeles
+
+        // Moto / Jugador
+        MOTO_ACCEL: 650,
+        MOTO_MAX_SPEED: 320,
+        MOTO_NITRO_SPEED: 480,
+        MOTO_FRICTION: 0.94,
+        MOTO_ROTATE_SPEED: 3.8,
+        BATTERY_DRAIN_RATE: 0.8,    // Consumo por segundo andando
+
+        // Obstáculos y Coleccionables
+        POTHOLE_COUNT: 24,
+        PLUS_COIN_COUNT: 35,
+        POTHOLE_DAMAGE: 15,          // Daño al paquete por hueco
+
+        // JUICE & Game Feel
+        SHAKE_DECAY: 2.5,
+        HIT_STOP_DURATION: 70       // ms de congelamiento al golpear hueco
+    };
+
+    /* ==========================================================================
+       2. SINTETIZADOR DE AUDIO (WEB AUDIO API 100% GENERADO EN CÓDIGO)
+       ========================================================================== */
+    class SoundEngine {
+        constructor() {
+            this.ctx = null;
+            this.initialized = false;
+        }
+
+        init() {
+            if (this.initialized) return;
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioCtx();
+                this.initialized = true;
+            } catch (e) {
+                console.warn("Web Audio API no soportada.");
+            }
+        }
+
+        playTone(freq, type, duration, volStart = 0.2, volEnd = 0.001) {
+            if (!this.initialized || !this.ctx) return;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+
+            gain.gain.setValueAtTime(volStart, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(volEnd, this.ctx.currentTime + duration);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start();
+            osc.stop(this.ctx.currentTime + duration);
+        }
+
+        playCoin() {
+            if (!this.initialized) return;
+            this.playTone(987.77, 'sine', 0.08, 0.25); // B5
+            setTimeout(() => this.playTone(1318.51, 'sine', 0.15, 0.25), 60); // E6
+        }
+
+        playHit() {
+            if (!this.initialized || !this.ctx) return;
+            // Ruido sordo para el hueco
+            const bufferSize = this.ctx.sampleRate * 0.15;
+            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(200, this.ctx.currentTime);
+
+            const gain = this.ctx.createGain();
+            gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            noise.start();
+        }
+
+        playDelivery() {
+            if (!this.initialized) return;
+            // Arpegio victorioso de entrega
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+            notes.forEach((freq, idx) => {
+                setTimeout(() => this.playTone(freq, 'triangle', 0.12, 0.2), idx * 70);
+            });
+        }
+
+        playTick() {
+            this.playTone(800, 'square', 0.03, 0.05);
+        }
+
+        playWin() {
+            if (!this.initialized) return;
+            const notes = [440, 554.37, 659.25, 880];
+            notes.forEach((f, i) => setTimeout(() => this.playTone(f, 'sine', 0.3, 0.3), i * 120));
+        }
+
+        playLose() {
+            if (!this.initialized) return;
+            const notes = [400, 350, 300, 250];
+            notes.forEach((f, i) => setTimeout(() => this.playTone(f, 'sawtooth', 0.25, 0.2), i * 100));
+        }
+    }
+
+    const sound = new SoundEngine();
+
+    /* ==========================================================================
+       3. SISTEMA DE PARTÍCULAS CON POOLING (GAME FEEL)
+       ========================================================================== */
+    class ParticlePool {
+        constructor(size = 150) {
+            this.pool = [];
+            for (let i = 0; i < size; i++) {
+                this.pool.push({
+                    active: false,
+                    x: 0, y: 0,
+                    vx: 0, vy: 0,
+                    size: 0,
+                    color: '#FFF',
+                    life: 0,
+                    maxLife: 1
+                });
+            }
+        }
+
+        spawn(x, y, vx, vy, size, color, maxLife) {
+            const p = this.pool.find(p => !p.active);
+            if (p) {
+                p.active = true;
+                p.x = x; p.y = y;
+                p.vx = vx; p.vy = vy;
+                p.size = size;
+                p.color = color;
+                p.life = 0;
+                p.maxLife = maxLife;
+            }
+        }
+
+        update(dt) {
+            for (let p of this.pool) {
+                if (p.active) {
+                    p.life += dt;
+                    if (p.life >= p.maxLife) {
+                        p.active = false;
+                    } else {
+                        p.x += p.vx * dt;
+                        p.y += p.vy * dt;
+                    }
+                }
+            }
+        }
+
+        draw(ctx) {
+            for (let p of this.pool) {
+                if (p.active) {
+                    const alpha = 1 - (p.life / p.maxLife);
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * (1 - p.life / p.maxLife * 0.5), 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+        }
+    }
+
+    /* ==========================================================================
+       4. GENERACIÓN DEL MAPA PROCEDURAL BOGOTANO (CHAPINERO)
+       ========================================================================== */
+    class BogotaMap {
+        constructor() {
+            this.width = CONFIG.GRID_COLS * (CONFIG.BLOCK_SIZE + CONFIG.STREET_WIDTH) + CONFIG.STREET_WIDTH;
+            this.height = CONFIG.GRID_ROWS * (CONFIG.BLOCK_SIZE + CONFIG.STREET_WIDTH) + CONFIG.STREET_WIDTH;
+            this.offscreenCanvas = document.createElement('canvas');
+            this.offscreenCanvas.width = this.width;
+            this.offscreenCanvas.height = this.height;
+
+            this.potholes = [];
+            this.coins = [];
+            this.deliveries = [];
+
+            this.generateMap();
+            this.renderStaticMap();
+        }
+
+        generateMap() {
+            // Generar Huecos aleatorios en las calles
+            for (let i = 0; i < CONFIG.POTHOLE_COUNT; i++) {
+                let pos = this.getRandomStreetPoint();
+                this.potholes.push({ x: pos.x, y: pos.y, radius: 18 + Math.random() * 8 });
+            }
+
+            // Generar Monedas Plus
+            for (let i = 0; i < CONFIG.PLUS_COIN_COUNT; i++) {
+                let pos = this.getRandomStreetPoint();
+                this.coins.push({ x: pos.x, y: pos.y, radius: 10, active: true });
+            }
+
+            // Generar 5 puntos de entrega con nomenclatura bogotana real
+            const callesBase = 60; // Chapinero: Calles 60 a 90
+            const carrerasBase = 7; // Carreras 7 a 15
+            for (let i = 0; i < CONFIG.ENTREGAS_META; i++) {
+                let pos = this.getRandomBuildingPoint();
+                let calle = callesBase + Math.floor(Math.random() * 25);
+                let carrera = carrerasBase + Math.floor(Math.random() * 8);
+                let numero = Math.floor(10 + Math.random() * 80);
+                let placa = Math.floor(10 + Math.random() * 80);
+
+                this.deliveries.push({
+                    id: i + 1,
+                    x: pos.x,
+                    y: pos.y,
+                    address: `Calle ${calle} # ${carrera}-${numero}`,
+                    delivered: false
+                });
+            }
+        }
+
+        getRandomStreetPoint() {
+            // Posición aleatoria dentro del asfalto
+            const isHorizontal = Math.random() > 0.5;
+            let col = Math.floor(Math.random() * CONFIG.GRID_COLS);
+            let row = Math.floor(Math.random() * CONFIG.GRID_ROWS);
+
+            let x, y;
+            if (isHorizontal) {
+                x = Math.random() * this.width;
+                y = row * (CONFIG.BLOCK_SIZE + CONFIG.STREET_WIDTH) + CONFIG.STREET_WIDTH / 2;
+            } else {
+                x = col * (CONFIG.BLOCK_SIZE + CONFIG.STREET_WIDTH) + CONFIG.STREET_WIDTH / 2;
+                y = Math.random() * this.height;
+            }
+            return { x, y };
+        }
+
+        getRandomBuildingPoint() {
+            let col = Math.floor(Math.random() * CONFIG.GRID_COLS);
+            let row = Math.floor(Math.random() * CONFIG.GRID_ROWS);
+            let x = col * (CONFIG.BLOCK_SIZE + CONFIG.STREET_WIDTH) + CONFIG.STREET_WIDTH + CONFIG.BLOCK_SIZE / 2;
+            let y = row * (CONFIG.BLOCK_SIZE + CONFIG.STREET_WIDTH) + CONFIG.STREET_WIDTH + CONFIG.BLOCK_SIZE / 2;
+            return { x, y };
+        }
+
+        renderStaticMap() {
+            const ctx = this.offscreenCanvas.getContext('2d');
+
+            // Fondo Asfalto base
+            ctx.fillStyle = '#2A2E33';
+            ctx.fillRect(0, 0, this.width, this.height);
+
+            // Dibujar Manzanas y Edificios (Vista 2.5D Estilizada)
+            const bSize = CONFIG.BLOCK_SIZE;
+            const sWidth = CONFIG.STREET_WIDTH;
+
+            for (let r = 0; r < CONFIG.GRID_ROWS; r++) {
+                for (let c = 0; c < CONFIG.GRID_COLS; c++) {
+                    const bx = c * (bSize + sWidth) + sWidth;
+                    const by = r * (bSize + sWidth) + sWidth;
+
+                    // Andén
+                    ctx.fillStyle = '#C5C9D0';
+                    ctx.beginPath();
+                    ctx.roundRect(bx - 8, by - 8, bSize + 16, bSize + 16, 12);
+                    ctx.fill();
+
+                    // Manzana de Edificios (Ladrillo Bogotano)
+                    ctx.fillStyle = '#B2533E'; // Ladrillo rojo rolo
+                    ctx.beginPath();
+                    ctx.roundRect(bx, by, bSize, bSize, 8);
+                    ctx.fill();
+
+                    // Sombra / Techos 2.5D
+                    ctx.fillStyle = '#8B3A2B';
+                    ctx.fillRect(bx + 15, by + 15, bSize - 30, bSize - 30);
+
+                    // Detalles de ventanas / zonas verdes internas
+                    ctx.fillStyle = '#4A7c59';
+                    ctx.beginPath();
+                    ctx.arc(bx + bSize/2, by + bSize/2, 25, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Marcas viales en las calles
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([20, 20]);
+
+            // Líneas de carril
+            for (let r = 0; r <= CONFIG.GRID_ROWS; r++) {
+                let y = r * (bSize + sWidth) + sWidth / 2;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(this.width, y);
+                ctx.stroke();
+            }
+            for (let c = 0; c <= CONFIG.GRID_COLS; c++) {
+                let x = c * (bSize + sWidth) + sWidth / 2;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, this.height);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]); // Reset
+        }
+
+        draw(ctx) {
+            // Renderizar el mapa estático cacheado
+            ctx.drawImage(this.offscreenCanvas, 0, 0);
+
+            // Renderizar los Cerros Orientales al borde Este (Oriente bogotano)
+            ctx.save();
+            ctx.fillStyle = '#1B4D3E';
+            ctx.globalAlpha = 0.85;
+            ctx.beginPath();
+            ctx.moveTo(this.width - 40, 0);
+            ctx.lineTo(this.width, 0);
+            ctx.lineTo(this.width, this.height);
+            ctx.lineTo(this.width - 40, this.height);
+            ctx.fill();
+
+            // Etiqueta Cerros Orientales
+            ctx.fillStyle = '#FFF';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.save();
+            ctx.translate(this.width - 15, this.height / 2);
+            ctx.rotate(Math.PI / 2);
+            ctx.fillText("🏔️ CERROS ORIENTALES (ESTE)", 0, 0);
+            ctx.restore();
+            ctx.restore();
+
+            // Renderizar Huecos
+            for (let hole of this.potholes) {
+                ctx.save();
+                ctx.fillStyle = '#111';
+                ctx.beginPath();
+                ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#F23D4F';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Renderizar Monedas Plus
+            const time = Date.now() * 0.005;
+            for (let coin of this.coins) {
+                if (!coin.active) continue;
+                ctx.save();
+                ctx.translate(coin.x, coin.y + Math.sin(time + coin.x) * 3);
+                ctx.fillStyle = '#FFE600';
+                ctx.beginPath();
+                ctx.arc(0, 0, coin.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#3483FA';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.fillStyle = '#1A1A1A';
+                ctx.font = 'bold 10px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('+', 0, 0);
+                ctx.restore();
+            }
+        }
+    }
+
+    /* ==========================================================================
+       5. JUGADOR / VEHÍCULO (MOTO ROLA CON FÍSICA Y ANIMACIÓN)
+       ========================================================================== */
+    class MotoPlayer {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.vx = 0;
+            this.vy = 0;
+            this.angle = 0;
+            this.speed = 0;
+
+            this.integrity = 100;
+            this.battery = 100;
+            this.isNitro = false;
+
+            this.skidMarks = [];
+            this.bobTimer = 0;
+        }
+
+        update(dt, keys, touchInput, map) {
+            // Controles combinados (Teclado + Touch)
+            let inputX = 0;
+            let inputY = 0;
+
+            if (keys['ArrowUp'] || keys['KeyW']) inputY -= 1;
+            if (keys['ArrowDown'] || keys['KeyS']) inputY += 1;
+            if (keys['ArrowLeft'] || keys['KeyA']) inputX -= 1;
+            if (keys['ArrowRight'] || keys['KeyD']) inputX += 1;
+
+            if (touchInput.active) {
+                inputX = touchInput.x;
+                inputY = touchInput.y;
+            }
+
+            this.isNitro = (keys['Space'] || touchInput.nitro) && this.battery > 5;
+
+            // Aceleración y Velocidad Máxima
+            let maxSpd = this.isNitro ? CONFIG.MOTO_NITRO_SPEED : CONFIG.MOTO_MAX_SPEED;
+            let targetSpeed = 0;
+
+            if (inputY < 0) targetSpeed = maxSpd;      // Adelante
+            else if (inputY > 0) targetSpeed = -maxSpd * 0.4; // Reversa
+
+            // Rotación
+            if (Math.abs(this.speed) > 10) {
+                let dir = this.speed > 0 ? 1 : -1;
+                this.angle += inputX * CONFIG.MOTO_ROTATE_SPEED * dt * dir;
+            }
+
+            // Suavizado de aceleración (Física)
+            if (targetSpeed !== 0) {
+                this.speed += (targetSpeed - this.speed) * 4 * dt;
+            } else {
+                this.speed *= CONFIG.MOTO_FRICTION;
+            }
+
+            // Actualizar vector velocidad
+            this.vx = Math.cos(this.angle) * this.speed;
+            this.vy = Math.sin(this.angle) * this.speed;
+
+            // Mover posición
+            let nextX = this.x + this.vx * dt;
+            let nextY = this.y + this.vy * dt;
+
+            // Colisión simple con límites del mapa
+            this.x = Math.max(30, Math.min(map.width - 30, nextX));
+            this.y = Math.max(30, Math.min(map.height - 30, nextY));
+
+            // Consumo de Batería
+            if (Math.abs(this.speed) > 10) {
+                let mult = this.isNitro ? 3 : 1;
+                this.battery = Math.max(0, this.battery - CONFIG.BATTERY_DRAIN_RATE * mult * dt);
+            }
+
+            // Animación de rebote (Bobbing) y Derrape
+            if (Math.abs(this.speed) > 20) {
+                this.bobTimer += dt * 15;
+                if (Math.abs(inputX) > 0.6 && Math.abs(this.speed) > 150) {
+                    // Dejar marca de derrape
+                    this.skidMarks.push({ x: this.x, y: this.y, alpha: 0.6 });
+                    if (this.skidMarks.length > 40) this.skidMarks.shift();
+                }
+            }
+
+            // Desvanecer marcas de derrape antiguas
+            for (let mark of this.skidMarks) {
+                mark.alpha -= dt * 0.3;
+            }
+            this.skidMarks = this.skidMarks.filter(m => m.alpha > 0);
+        }
+
+        draw(ctx) {
+            // Renderizar Marcas de Derrape
+            for (let mark of this.skidMarks) {
+                ctx.save();
+                ctx.globalAlpha = mark.alpha;
+                ctx.fillStyle = '#111';
+                ctx.fillRect(mark.x - 3, mark.y - 3, 6, 6);
+                ctx.restore();
+            }
+
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.angle);
+
+            // Sombra del vehículo
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath();
+            ctx.ellipse(2, 6, 18, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Efecto Visual de Nitro (Fuego/Estela)
+            if (this.isNitro) {
+                ctx.fillStyle = '#FFE600';
+                ctx.beginPath();
+                ctx.moveTo(-20, 0);
+                ctx.lineTo(-35 - Math.random() * 10, -6);
+                ctx.lineTo(-35 - Math.random() * 10, 6);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Cuerpo de la Moto Rola
+            let bobY = Math.sin(this.bobTimer) * 1.5;
+
+            // Carrocería Azul #3483FA
+            ctx.fillStyle = '#3483FA';
+            ctx.beginPath();
+            ctx.roundRect(-14, -8 + bobY, 28, 16, 6);
+            ctx.fill();
+
+            // Casco Repartidor (Amarillo #FFE600)
+            ctx.fillStyle = '#FFE600';
+            ctx.beginPath();
+            ctx.arc(2, 0 + bobY, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Caja de Entregas en la Parrilla (Cartón con cinta)
+            ctx.fillStyle = '#C88A4B';
+            ctx.fillRect(-16, -7 + bobY, 10, 14);
+            ctx.fillStyle = '#FFE600'; // Cinta amarilla
+            ctx.fillRect(-12, -7 + bobY, 2, 14);
+
+            // Faros Delanteros (Luz)
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.arc(14, 0 + bobY, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+    }
+
+    /* ==========================================================================
+       6. CÁMARA 2.5D CON LOOK-AHEAD Y TRAUMA SCREEN SHAKE
+       ========================================================================== */
+    class GameCamera {
+        constructor() {
+            this.x = 0;
+            this.y = 0;
+            this.trauma = 0;
+            this.zoom = 1;
+        }
+
+        addTrauma(amount) {
+            this.trauma = Math.min(1.0, this.trauma + amount);
+        }
+
+        update(dt, targetX, targetY, targetSpeed, isNitro, canvasWidth, canvasHeight) {
+            // Suavizado Lerp hacia el jugador + Look-ahead en dirección de movimiento
+            let lookAheadX = targetX + Math.cos(targetSpeed) * 40;
+            let lookAheadY = targetY + Math.sin(targetSpeed) * 40;
+
+            this.x += (lookAheadX - canvasWidth / 2 - this.x) * 5 * dt;
+            this.y += (lookAheadY - canvasHeight / 2 - this.y) * 5 * dt;
+
+            // Zoom Dinámico con el Nitro
+            let targetZoom = isNitro ? 0.9 : 1.0;
+            this.zoom += (targetZoom - this.zoom) * 3 * dt;
+
+            // Shake basado en Trauma (decae con el tiempo)
+            if (this.trauma > 0) {
+                const shakeX = (Math.random() * 2 - 1) * (this.trauma * this.trauma) * 20;
+                const shakeY = (Math.random() * 2 - 1) * (this.trauma * this.trauma) * 20;
+                this.x += shakeX;
+                this.y += shakeY;
+                this.trauma = Math.max(0, this.trauma - CONFIG.SHAKE_DECAY * dt);
+            }
+        }
+    }
+
+    /* ==========================================================================
+       7. MÁQUINA DE ESTADOS Y CONTROLADOR PRINCIPAL DEL JUEGO
+       ========================================================================== */
+    class GameEngine {
+        constructor() {
+            this.canvas = document.getElementById('gameCanvas');
+            this.ctx = this.canvas.getContext('2d');
+
+            this.state = 'SPLASH'; // SPLASH, MENU, CONTROLS, PLAY, PAUSE, SUMMARY
+            this.map = null;
+            this.player = null;
+            this.camera = new GameCamera();
+            this.particles = new ParticlePool();
+
+            // Estado del Turno
+            this.timer = CONFIG.TURNO_TIEMPO_MAX;
+            this.deliveriesDone = 0;
+            this.plusCoins = 0;
+            this.potholesHit = 0;
+            this.currentDeliveryIndex = 0;
+
+            // Control de Entrada
+            this.keys = {};
+            this.touchInput = { active: false, x: 0, y: 0, nitro: false };
+
+            // Hit-Stop
+            this.hitStopTimer = 0;
+
+            this.initEvents();
+            this.resizeCanvas();
+            this.setupUI();
+        }
+
+        initEvents() {
+            window.addEventListener('resize', () => this.resizeCanvas());
+
+            // Teclado
+            window.addEventListener('keydown', (e) => {
+                sound.init();
+                this.keys[e.code] = true;
+
+                // Accesos Rápidos por Tecla
+                if (e.code === 'KeyP' || e.code === 'Escape') {
+                    if (this.state === 'PLAY') this.setState('PAUSE');
+                    else if (this.state === 'PAUSE') this.setState('PLAY');
+                }
+                if (e.code === 'KeyR') {
+                    if (this.state === 'PLAY' || this.state === 'PAUSE' || this.state === 'SUMMARY') {
+                        this.restartTurn();
+                    }
+                }
+                if (e.code === 'Enter') {
+                    if (this.state === 'SPLASH') this.setState('MENU');
+                }
+            });
+
+            window.addEventListener('keyup', (e) => {
+                this.keys[e.code] = false;
+            });
+
+            // Controles Táctiles Mobile (Joystick Virtual)
+            const joyArea = document.getElementById('touch-joystick');
+            const joyStick = document.getElementById('touch-stick');
+            const btnNitro = document.getElementById('touch-nitro');
+
+            if ('ontouchstart' in window) {
+                document.getElementById('touch-controls').style.display = 'flex';
+            }
+
+            let joyRect;
+            const handleTouchMove = (e) => {
+                sound.init();
+                if (!joyRect) joyRect = joyArea.getBoundingClientRect();
+                const touch = e.touches[0];
+                const centerX = joyRect.left + joyRect.width / 2;
+                const centerY = joyRect.top + joyRect.height / 2;
+
+                let dx = touch.clientX - centerX;
+                let dy = touch.clientY - centerY;
+                let dist = Math.hypot(dx, dy);
+                let maxDist = joyRect.width / 2;
+
+                if (dist > maxDist) {
+                    dx = (dx / dist) * maxDist;
+                    dy = (dy / dist) * maxDist;
+                }
+
+                joyStick.style.transform = `translate(${dx}px, ${dy}px)`;
+                this.touchInput.active = true;
+                this.touchInput.x = dx / maxDist;
+                this.touchInput.y = dy / maxDist;
+            };
+
+            const resetTouch = () => {
+                joyStick.style.transform = `translate(0px, 0px)`;
+                this.touchInput.active = false;
+                this.touchInput.x = 0;
+                this.touchInput.y = 0;
+            };
+
+            joyArea.addEventListener('touchstart', handleTouchMove);
+            joyArea.addEventListener('touchmove', handleTouchMove);
+            joyArea.addEventListener('touchend', resetTouch);
+
+            btnNitro.addEventListener('touchstart', () => { sound.init(); this.touchInput.nitro = true; });
+            btnNitro.addEventListener('touchend', () => { this.touchInput.nitro = false; });
+        }
+
+        resizeCanvas() {
+            this.canvas.width = window.innerWidth * window.devicePixelRatio;
+            this.canvas.height = window.innerHeight * window.devicePixelRatio;
+            this.ctx.imageSmoothingEnabled = true;
+        }
+
+        setupUI() {
+            // Botones Menús
+            document.getElementById('btn-splash-start').onclick = () => this.setState('MENU');
+            document.getElementById('btn-menu-play').onclick = () => this.startTurn();
+            document.getElementById('btn-menu-controls').onclick = () => this.setState('CONTROLS');
+            document.getElementById('btn-controls-back').onclick = () => this.setState('MENU');
+
+            document.getElementById('btn-pause-hud').onclick = () => this.setState('PAUSE');
+            document.getElementById('btn-pause-resume').onclick = () => this.setState('PLAY');
+            document.getElementById('btn-pause-restart').onclick = () => this.restartTurn();
+            document.getElementById('btn-pause-quit').onclick = () => this.setState('MENU');
+
+            document.getElementById('btn-summary-retry').onclick = () => this.restartTurn();
+            document.getElementById('btn-summary-menu').onclick = () => this.setState('MENU');
+        }
+
+        setState(newState) {
+            this.state = newState;
+
+            // Ocultar todas las pantallas modales
+            document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
+            document.getElementById('hud').style.display = 'none';
+
+            // Activar la pantalla correspondiente
+            if (newState === 'SPLASH') document.getElementById('screen-splash').classList.add('active');
+            if (newState === 'MENU') document.getElementById('screen-menu').classList.add('active');
+            if (newState === 'CONTROLS') document.getElementById('screen-controls').classList.add('active');
+            if (newState === 'PAUSE') document.getElementById('screen-pause').classList.add('active');
+            if (newState === 'SUMMARY') document.getElementById('screen-summary').classList.add('active');
+
+            if (newState === 'PLAY') {
+                document.getElementById('hud').style.display = 'flex';
+            }
+        }
+
+        startTurn() {
+            this.map = new BogotaMap();
+            // Posicionar moto en la primera calle
+            let startPos = this.map.getRandomStreetPoint();
+            this.player = new MotoPlayer(startPos.x, startPos.y);
+
+            this.timer = CONFIG.TURNO_TIEMPO_MAX;
+            this.deliveriesDone = 0;
+            this.plusCoins = 0;
+            this.potholesHit = 0;
+            this.currentDeliveryIndex = 0;
+
+            this.updateHUD();
+            this.setState('PLAY');
+        }
+
+        restartTurn() {
+            // Reinicio instantáneo en menos de 1 s
+            this.startTurn();
+        }
+
+        update(dt) {
+            if (this.state !== 'PLAY') return;
+
+            // Lógica Hit-Stop (Congelamiento por impacto)
+            if (this.hitStopTimer > 0) {
+                this.hitStopTimer -= dt * 1000;
+                return;
+            }
+
+            // Temporizador Global
+            const prevTimer = Math.ceil(this.timer);
+            this.timer = Math.max(0, this.timer - dt);
+            const currTimer = Math.ceil(this.timer);
+
+            if (currTimer <= 10 && currTimer !== prevTimer && currTimer > 0) {
+                sound.playTick();
+            }
+
+            // Actualizar Moto Jugador
+            this.player.update(dt, this.keys, this.touchInput, this.map);
+
+            // Generar partículas de polvo al conducir
+            if (Math.abs(this.player.speed) > 50) {
+                this.particles.spawn(
+                    this.player.x - Math.cos(this.player.angle) * 15,
+                    this.player.y - Math.sin(this.player.angle) * 15,
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20,
+                    Math.random() * 4 + 2,
+                    this.player.isNitro ? '#FFE600' : '#A0A0A0',
+                    0.4
+                );
+            }
+
+            // Actualizar Cámara con Trauma
+            this.camera.update(
+                dt,
+                this.player.x,
+                this.player.y,
+                this.player.angle,
+                this.player.isNitro,
+                this.canvas.width / window.devicePixelRatio,
+                this.canvas.height / window.devicePixelRatio
+            );
+
+            // Actualizar Partículas
+            this.particles.update(dt);
+
+            // === VERIFICAR COLISIONES E INTERACCIONES ===
+
+            // 1. Huecos
+            for (let hole of this.map.potholes) {
+                let dist = Math.hypot(this.player.x - hole.x, this.player.y - hole.y);
+                if (dist < hole.radius + 10) {
+                    // Daño y Hit-stop
+                    this.player.integrity = Math.max(0, this.player.integrity - CONFIG.POTHOLE_DAMAGE);
+                    this.potholesHit++;
+                    this.camera.addTrauma(0.6);
+                    this.hitStopTimer = CONFIG.HIT_STOP_DURATION;
+                    sound.playHit();
+
+                    // Partículas de chispa / choque
+                    for (let i = 0; i < 12; i++) {
+                        this.particles.spawn(
+                            this.player.x, this.player.y,
+                            (Math.random() - 0.5) * 250, (Math.random() - 0.5) * 250,
+                            5, '#F23D4F', 0.5
+                        );
+                    }
+
+                    // Mover ligeramente fuera del hueco para no re-colisionar
+                    this.player.speed *= -0.3;
+                    this.player.x += Math.cos(this.player.angle) * -15;
+                    this.player.y += Math.sin(this.player.angle) * -15;
+                    break;
+                }
+            }
+
+            // 2. Monedas Plus
+            for (let coin of this.map.coins) {
+                if (!coin.active) continue;
+                let dist = Math.hypot(this.player.x - coin.x, this.player.y - coin.y);
+                if (dist < coin.radius + 15) {
+                    coin.active = false;
+                    this.plusCoins += 10;
+                    sound.playCoin();
+                    for (let i = 0; i < 8; i++) {
+                        this.particles.spawn(coin.x, coin.y, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100, 4, '#FFE600', 0.4);
+                    }
+                }
+            }
+
+            // 3. Entregas
+            let currentTarget = this.map.deliveries[this.currentDeliveryIndex];
+            if (currentTarget && !currentTarget.delivered) {
+                let dist = Math.hypot(this.player.x - currentTarget.x, this.player.y - currentTarget.y);
+                if (dist < 50) {
+                    currentTarget.delivered = true;
+                    this.deliveriesDone++;
+                    this.plusCoins += 50;
+                    sound.playDelivery();
+
+                    // Celebración de partículas
+                    for (let i = 0; i < 25; i++) {
+                        this.particles.spawn(currentTarget.x, currentTarget.y, (Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200, 6, '#00A650', 0.8);
+                    }
+
+                    // Pasar a la siguiente entrega
+                    this.currentDeliveryIndex++;
+                }
+            }
+
+            // Actualizar HUD
+            this.updateHUD();
+
+            // VERIFICAR CONDICIONES DE VICTORIA O DERROTA
+            if (this.deliveriesDone >= CONFIG.ENTREGAS_META) {
+                this.endTurn(true); // Gana
+            } else if (this.timer <= 0 || this.player.integrity <= 0 || this.player.battery <= 0) {
+                this.endTurn(false); // Pierde
+            }
+        }
+
+        updateHUD() {
+            document.getElementById('hud-deliveries').innerText = `${this.deliveriesDone} / ${CONFIG.ENTREGAS_META}`;
+            document.getElementById('hud-plus').innerText = this.plusCoins;
+
+            // Formatear Tiempo (mm:ss)
+            const mins = Math.floor(this.timer / 60);
+            const secs = Math.floor(this.timer % 60);
+            const timeStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            const timerEl = document.getElementById('hud-timer');
+            timerEl.innerText = timeStr;
+
+            if (this.timer <= 10) timerEl.classList.add('urgent');
+            else timerEl.classList.remove('urgent');
+
+            // Barras de Integridad y Batería
+            document.getElementById('bar-integrity').style.width = `${this.player.integrity}%`;
+            document.getElementById('lbl-integrity').innerText = `${Math.round(this.player.integrity)}%`;
+
+            document.getElementById('bar-battery').style.width = `${this.player.battery}%`;
+            document.getElementById('lbl-battery').innerText = `${Math.round(this.player.battery)}%`;
+
+            // Próxima Entrega
+            let target = this.map.deliveries[this.currentDeliveryIndex];
+            if (target) {
+                document.getElementById('target-address').innerText = target.address;
+                let dist = Math.round(Math.hypot(this.player.x - target.x, this.player.y - target.y));
+                document.getElementById('target-dist').innerText = `📍 Distancia: ${dist} m`;
+            } else {
+                document.getElementById('target-address').innerText = "¡Todas entregadas!";
+                document.getElementById('target-dist').innerText = "Vuelve al punto de control";
+            }
+        }
+
+        endTurn(won) {
+            if (won) {
+                sound.playWin();
+                document.getElementById('summary-title').innerText = "¡Turno Completado! 🎉";
+                document.getElementById('summary-subtitle').innerText = "Entregaste todos los paquetes a tiempo en Chapinero";
+            } else {
+                sound.playLose();
+                document.getElementById('summary-title').innerText = "¡Turno Fallido! ❌";
+                let cause = "Se acabó el tiempo";
+                if (this.player.integrity <= 0) cause = "Los paquetes se destruyeron por los huecos";
+                else if (this.player.battery <= 0) cause = "Te quedaste sin batería en la moto";
+                document.getElementById('summary-subtitle').innerText = cause;
+            }
+
+            // Calcular Estrellas (1 a 3)
+            let stars = 0;
+            if (won) {
+                stars = 1;
+                if (this.player.integrity >= 80) stars++;
+                if (this.timer >= 30) stars++;
+            }
+
+            document.getElementById('star-1').className = stars >= 1 ? 'star active' : 'star';
+            document.getElementById('star-2').className = stars >= 2 ? 'star active' : 'star';
+            document.getElementById('star-3').className = stars >= 3 ? 'star active' : 'star';
+
+            // Llenar Estadísticas
+            const timeUsed = CONFIG.TURNO_TIEMPO_MAX - Math.ceil(this.timer);
+            const m = Math.floor(timeUsed / 60);
+            const s = timeUsed % 60;
+            document.getElementById('stat-time').innerText = `${m}:${s.toString().padStart(2, '0')}`;
+            document.getElementById('stat-plus').innerText = `+${this.plusCoins}`;
+            document.getElementById('stat-integrity').innerText = `${Math.round(this.player.integrity)}%`;
+            document.getElementById('stat-potholes').innerText = this.potholesHit;
+
+            this.setState('SUMMARY');
+        }
+
+        render() {
+            // Limpiar Pantalla
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+            if (this.state === 'PLAY' || this.state === 'PAUSE' || this.state === 'SUMMARY') {
+                const scale = window.devicePixelRatio;
+                this.ctx.save();
+                this.ctx.scale(scale * this.camera.zoom, scale * this.camera.zoom);
+                this.ctx.translate(-this.camera.x, -this.camera.y);
+
+                // 1. Mapa Base Chapinero
+                this.map.draw(this.ctx);
+
+                // 2. Destino Actual (Pin / Anillo Pulsante de Entrega)
+                let target = this.map.deliveries[this.currentDeliveryIndex];
+                if (target && !target.delivered) {
+                    const pulse = Math.sin(Date.now() * 0.008) * 8;
+                    this.ctx.save();
+                    this.ctx.strokeStyle = '#3483FA';
+                    this.ctx.lineWidth = 4;
+                    this.ctx.beginPath();
+                    this.ctx.arc(target.x, target.y, 35 + pulse, 0, Math.PI * 2);
+                    this.ctx.stroke();
+
+                    // Pin Icon
+                    this.ctx.fillStyle = '#3483FA';
+                    this.ctx.beginPath();
+                    this.ctx.arc(target.x, target.y, 14, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.fillStyle = '#FFF';
+                    this.ctx.font = 'bold 12px sans-serif';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    this.ctx.fillText(`📦 ${target.id}`, target.x, target.y);
+                    this.ctx.restore();
+                }
+
+                // 3. Jugador (Moto)
+                this.player.draw(this.ctx);
+
+                // 4. Partículas
+                this.particles.draw(this.ctx);
+
+                this.ctx.restore();
+            }
+        }
+    }
+
+    /* ==========================================================================
+       8. LOOP PRINCIPAL DE INICIALIZACIÓN
+       ========================================================================== */
+    window.onload = () => {
+        const game = new GameEngine();
+        let lastTime = performance.now();
+
+        function gameLoop(now) {
+            let dt = (now - lastTime) / 1000;
+            if (dt > 0.1) dt = 0.1; // Prevenir dt gigante por cambio de pestaña
+            lastTime = now;
+
+            game.update(dt);
+            game.render();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        requestAnimationFrame(gameLoop);
+    };
+    </script>
+</body>
+</html>
